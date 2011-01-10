@@ -1,0 +1,32 @@
+{
+    "name": "CoreData",
+    "dependencies": [
+        "narwhal",
+        "browserjs",
+        "jake",
+        "objective-j"
+    ],
+    "description": "CoreData cappuccino module",
+    "keywords": [
+        "objective-j",
+        "objj",
+        "objective j",
+        "capp",
+        "cappuccino",
+        "coredata"
+    ],
+    "author": "",
+    "objj-frameworks": [
+        "Frameworks"
+    ],
+    "objj-debug-frameworks": [
+        "Frameworks/Debug"
+    ],
+    "contributors": [
+        "Raphael Bartolome",
+        "Jürgen Kartnaller"
+    ],
+    "cappuccino-revision": "c0d9f8e636f35f17c495b0622c70d736289907ec",
+    "cappuccino-timestamp": 1294654832830,
+    "version": "0.1"
+}

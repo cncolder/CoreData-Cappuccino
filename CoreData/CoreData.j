@@ -21,27 +21,27 @@
 @import "CPFetchRequest.j"
 @import "CPFetchRequestTemplates.j"
 
-@import "CPCoreDataCategories/CPCoreDataCategories.j"
-@import "NSCoreData/NSCoreData.j"
+@import "CPCoreDataCategories.j"
+@import "NSCoreData.j"
 
 //Memory store
-@import "CPCoreDataPersistantStores/MemoryStore/CPMemoryStore.j"
-@import "CPCoreDataPersistantStores/MemoryStore/CPMemoryStoreType.j"
+@import "CPMemoryStore.j"
+@import "CPMemoryStoreType.j"
 
 //WebDAV store
-@import "CPCoreDataPersistantStores/WebDAVStore/CPWebDAVStoreType.j"
-@import "CPCoreDataPersistantStores/WebDAVStore/CPWebDAVStore.j"
+@import "CPWebDAVStoreType.j"
+@import "CPWebDAVStore.j"
 
 //HTML5 store
-@import "CPCoreDataPersistantStores/HTML5Store/CPHTML5Store.j"
-@import "CPCoreDataPersistantStores/HTML5Store/CPHTML5StoreType.j"
+@import "CPHTML5Store.j"
+@import "CPHTML5StoreType.j"
 
 //WebObjects store
-@import "CPCoreDataPersistantStores/WOStore/CPWOStore.j"
-@import "CPCoreDataPersistantStores/WOStore/CPWOStoreType.j"
+@import "CPWOStore.j"
+@import "CPWOStoreType.j"
 
 
 //CPPredicate from cocaodev @ github
-@import "CPPredicate/CPPredicate.j"
-@import "CPPredicate/CPScanner.j"
-@import "CPPredicate/CPCharacterSet.j"
+@import "CPPredicate.j"
+@import "CPScanner.j"
+@import "CPCharacterSet.j"
