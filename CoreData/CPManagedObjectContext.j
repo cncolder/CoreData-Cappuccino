@@ -146,7 +146,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 
 
 - (CPSet) _executeLocalFetchRequest:(CPFetchRequest) aFetchRequest
-{	
+{
 	var resultArray = [[CPMutableArray alloc] init];
 	var searchPredicate = nil;
 	var entityPredicate = [CPPredicate predicateWithFormat:@"%K like %@", @"entity.name", [[aFetchRequest entity] name]];
