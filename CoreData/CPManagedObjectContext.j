@@ -174,29 +174,25 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 }
 
 
-//@TODO write store fetching
 - (CPSet) _executeStoreFetchRequest:(CPFetchRequest) aFetchRequest
 {
 	var error;
 	var resultArray = [[CPMutableArray alloc] init];
-	
-	if([[self store] respondsToSelector:@selector(executeFetchRequest:inManagedObjectContext:error:)])
+	if ([[self store] respondsToSelector:@selector(executeFetchRequest:inManagedObjectContext:error:)])
 	{
 		var resultSet = [[self store] executeFetchRequest:aFetchRequest
 								  inManagedObjectContext:self
 												   error:error];
-
-		if(resultSet != nil && [resultSet count] > 0 && error == nil)
+		if (resultSet != nil && [resultSet count] > 0 && error == nil)
 		{
 			var objectEnum = [resultSet objectEnumerator];
 			var objectFromResponse;
 			while((objectFromResponse = [objectEnum nextObject]))
 			{
-				[result addObject:[self _registerObject:objectFromResponse]];
+				[resultArray addObject:[self _registerObject:objectFromResponse]];
 			}
 		}
 	}
-	
 	return [CPSet setWithArray:resultArray];
 }
 
