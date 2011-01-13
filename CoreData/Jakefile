@@ -80,8 +80,8 @@ task ("release", function()
 
 $BUILD_DIR = FILE.join("Build");
 $BUILD_CJS_COREDATA = FILE.join($BUILD_DIR, "CommonJS");
-$BUILD_COREDATA_DEBUG_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks", "Debug");
-$BUILD_COREDATA_RELEASE_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks");
+$BUILD_COREDATA_DEBUG_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks", "CoreData", "Debug");
+$BUILD_COREDATA_RELEASE_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks", "CoreData");
 
 
 task ("install", ["release", "debug"], function()
