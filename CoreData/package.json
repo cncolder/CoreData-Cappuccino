@@ -1,10 +1,11 @@
 {
-    "name": "CoreData",
+    "name": "coredata",
     "dependencies": [
         "narwhal",
         "browserjs",
         "jake",
-        "objective-j"
+        "objective-j",
+        "cappuccino"
     ],
     "description": "CoreData cappuccino module",
     "keywords": [
@@ -26,7 +27,4 @@
         "Raphael Bartolome",
         "Jürgen Kartnaller"
     ],
-    "cappuccino-revision": "c0d9f8e636f35f17c495b0622c70d736289907ec",
-    "cappuccino-timestamp": 1294654832830,
-    "version": "0.1"
 }
