@@ -9,7 +9,7 @@
 CPMemoryStoreConfigurationKeyResourcesFile = "CPMemoryStoreResourcesFile";
 CPMemoryStoreConfigurationKeyFileFormat = "CPMemoryDAVStoreFileFormat";
 
-@implementation CPMemoryStoreType : CPPersistantStoreType
+@implementation CPMemoryStoreType : CPPersistentStoreType
 {
 }
 

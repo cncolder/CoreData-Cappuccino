@@ -9,7 +9,7 @@
 
 CPHTML5StoreName = "CPHTML5StoreName";
 
-@implementation CPHTML5StoreType : CPPersistantStoreType
+@implementation CPHTML5StoreType : CPPersistentStoreType
 {
 }
 

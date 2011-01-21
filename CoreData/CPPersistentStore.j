@@ -1,5 +1,5 @@
 //
-//  CPPersistantStore.j
+//  CPPersistentStore.j
 //
 //  Created by Raphael Bartolome on 15.09.09.
 //
@@ -7,14 +7,14 @@
 @import <Foundation/Foundation.j>
 
 
-@implementation CPPersistantStore : CPObject
+@implementation CPPersistentStore : CPObject
 {
 	CPString _storeID;
 	CPURL _URL;
 	CPMutableDictionary _configuration;
 	CPMutableDictionary _metadata;
 
-	CPPersistantStoreCoordinator _storeCoordinator @accessors(property=storeCoordinator);
+	CPPersistentStoreCoordinator _storeCoordinator @accessors(property=storeCoordinator);
 }
 
 

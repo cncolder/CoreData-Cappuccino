@@ -8,7 +8,7 @@
 @import <CoreData/CoreData.j>
 
 
-@implementation CPWOStoreType : CPPersistantStoreType
+@implementation CPWOStoreType : CPPersistentStoreType
 {
 }
 

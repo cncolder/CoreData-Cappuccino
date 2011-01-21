@@ -11,7 +11,7 @@
 
 @import "RLOfflineLocalStorage.j"
 
-@implementation CPHTML5Store : CPPersistantStore
+@implementation CPHTML5Store : CPPersistentStore
 {
 	id dataStorage;
 }

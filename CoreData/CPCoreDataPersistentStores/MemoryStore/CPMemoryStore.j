@@ -7,7 +7,7 @@
 @import <Foundation/Foundation.j>
 
 
-@implementation CPMemoryStore : CPPersistantStore
+@implementation CPMemoryStore : CPPersistentStore
 {
 	CPString _storeID;
 	CPURL _URL;

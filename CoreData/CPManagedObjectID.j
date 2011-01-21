@@ -11,7 +11,7 @@
 {
 	CPEntityDescription _entity @accessors(property=entity);
 	CPManagedObjectContext _context @accessors(property=context);
-	CPPersistantStore _store @accessors(property=store);
+	CPPersistentStore _store @accessors(property=store);
 	id _globalID @accessors(property=globalID);
 	id _localID @accessors(setter=setLocalID:);
 	BOOL _isTemporary @accessors(property=isTemporary);

@@ -1,5 +1,5 @@
 //
-//  CPPersistantStoreType.j
+//  CPPersistentStoreType.j
 //
 //  Created by Raphael Bartolome on 09.10.09.
 //
@@ -10,7 +10,7 @@
 /*
  * Override this class to add a custom StoreType
  */
-@implementation CPPersistantStoreType : CPObject
+@implementation CPPersistentStoreType : CPObject
 {
 }
 

@@ -32,7 +32,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 {
 	CPEntityDescription _entity @accessors(property=entity);
 	CPManagedObjectContext _context @accessors(property=context);
-	CPPersistantStore _store @accessors(property=store);
+	CPPersistentStore _store @accessors(property=store);
 	
 	CPManagedObjectID _objectID @accessors(property=objectID);
 	BOOL _isUpdated @accessors(getter=isUpdated, setter=setUpdated:);

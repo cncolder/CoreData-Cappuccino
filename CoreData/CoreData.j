@@ -6,8 +6,8 @@
 
 @import <Foundation/Foundation.j>
 
-@import "CPPersistantStore.j"
-@import "CPPersistantStoreType.j"
+@import "CPPersistentStore.j"
+@import "CPPersistentStoreType.j"
 @import "CPPersistentStoreCoordinator.j"
 @import "CPManagedObjectContext.j"
 

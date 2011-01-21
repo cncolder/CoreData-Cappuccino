@@ -1,10 +1,10 @@
 //
-//  CPPersistantStoreType.h
+//  CPPersistentStoreType.h
 //
 //  Created by Raphael Bartolome on 25.11.09.
 //
 
-@interface CPPersistantStoreType : CPObject
+@interface CPPersistentStoreType : CPObject
 {
 }
 

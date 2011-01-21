@@ -8,7 +8,7 @@
 @import "CPManagedObject.j"
 @import "CPManagedObjectID.j"
 @import "CPManagedObjectModel.j"
-@import "CPPersistantStore.j"
+@import "CPPersistentStore.j"
 
 /* 
 
@@ -69,7 +69,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	return self;
 }
 
-- (id) initWithPersistantStoreCoordinator:(CPPersistentStoreCoordinator)aStoreCoordinator
+- (id) initWithPersistentStoreCoordinator:(CPPersistentStoreCoordinator)aStoreCoordinator
 {
 	if ((self = [super init]))
 	{
@@ -96,7 +96,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	return [_storeCoordinator managedObjectModel];
 }
 
-- (CPPersistantStore)store
+- (CPPersistentStore)store
 {
 	return [_storeCoordinator persistantStore];
 }

@@ -9,7 +9,7 @@
 @import <CoreData/CPWebDAVRequest.j>
 
 
-@implementation CPWebDAVStore : CPPersistantStore
+@implementation CPWebDAVStore : CPPersistentStore
 {
 	CPWebDAVRequest _davManager;
 }

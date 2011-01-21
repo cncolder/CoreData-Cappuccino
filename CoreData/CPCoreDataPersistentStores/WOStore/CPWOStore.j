@@ -12,7 +12,7 @@
  *	persistantStore
  *	customConnectionURL
  */
-@implementation CPWOStore : CPPersistantStore
+@implementation CPWOStore : CPPersistentStore
 {
 }
 

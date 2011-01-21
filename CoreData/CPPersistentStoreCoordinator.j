@@ -10,7 +10,7 @@
 {
 	CPManagedObjectModel _model @accessors(property=managedObjectModel);
 	CPDictionary _persistentStores @accessors(property=persistentStores);
-	CPPersistantStore _persistantStore @accessors(property=persistantStore);
+	CPPersistentStore _persistantStore @accessors(property=persistantStore);
 	CPUndoManager _undoManager;
 }
 
@@ -28,7 +28,7 @@
 
 
 - (id) initWithManagedObjectModel:(CPManagedObjectModel)model
-				 		storeType:(CPPersistantStoreType) aStoreType
+				 		storeType:(CPPersistentStoreType) aStoreType
 			   storeConfiguration:(id) aConfiguration
 {
 	if ((self = [super init]))
@@ -43,7 +43,7 @@
 
 
 // Managing the persistent stores.
-- (id) addPersistentStoreWithType: (CPPersistantStoreType) aStoreType
+- (id) addPersistentStoreWithType: (CPPersistentStoreType) aStoreType
                     configuration: (id) aConfiguration
 {
 	var storeClass = [aStoreType storeClass];

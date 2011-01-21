@@ -1,10 +1,10 @@
 //
-//  CPPersistantStore.h
+//  CPPersistentStore.h
 //
 //  Created by Raphael Bartolome on 25.11.09.
 //
 
-@interface CPPersistantStore : CPObject
+@interface CPPersistentStore : CPObject
 {
 	CPManagedObjectModel [self model] @accessors(property=model);
 }

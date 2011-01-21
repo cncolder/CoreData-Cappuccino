@@ -11,7 +11,7 @@ mkdir CoreData.doc
 echo "Copying source files..."
 cp *.j CoreData.doc
 cp CPCoreDataCategories/*.j CoreData.doc
-cp CPCoreDataPersistantStores/**/*.j CoreData.doc
+cp CPCoreDataPersistentStores/**/*.j CoreData.doc
 cp CPPredicate/*.j CoreData.doc
 cp NSCoreData/*.j CoreData.doc
 

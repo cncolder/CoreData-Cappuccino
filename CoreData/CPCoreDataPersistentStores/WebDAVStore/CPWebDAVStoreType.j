@@ -12,7 +12,7 @@ CPWebDAVStoreConfigurationKeyFilePath = "CPWebDAVStoreFilePath";
 CPWebDAVStoreConfigurationKeyFileFormat = "CPWebDAVStoreFileFormat";
 
 
-@implementation CPWebDAVStoreType : CPPersistantStoreType
+@implementation CPWebDAVStoreType : CPPersistentStoreType
 {
 }
 
