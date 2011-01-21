@@ -40,8 +40,3 @@
 @import "CPWOStore.j"
 @import "CPWOStoreType.j"
 
-
-//CPPredicate from cocaodev @ github
-@import "CPPredicate.j"
-@import "CPScanner.j"
-@import "CPCharacterSet.j"
