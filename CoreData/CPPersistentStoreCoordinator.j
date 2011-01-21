@@ -10,7 +10,7 @@
 {
 	CPManagedObjectModel _model @accessors(property=managedObjectModel);
 	CPDictionary _persistentStores @accessors(property=persistentStores);
-	CPPersistentStore _persistantStore @accessors(property=persistantStore);
+	CPPersistentStore _persistentStore @accessors(property=persistentStore);
 	CPUndoManager _undoManager;
 }
 
@@ -50,7 +50,7 @@
 	var store = [[storeClass alloc] init];
 	[store setConfiguration: aConfiguration];
 	[store setStoreCoordinator:self];
-	_persistantStore = store;
+	_persistentStore = store;
 }
 
 - (BOOL) removePersistentStore: (id) aPersistentStore

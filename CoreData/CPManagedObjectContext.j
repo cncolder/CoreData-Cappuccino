@@ -98,7 +98,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 
 - (CPPersistentStore)store
 {
-	return [_storeCoordinator persistantStore];
+	return [_storeCoordinator persistentStore];
 }
 
 - (BOOL) autoSaveChanges

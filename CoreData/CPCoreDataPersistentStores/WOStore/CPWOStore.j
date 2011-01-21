@@ -9,7 +9,7 @@
 /*
  * configuration keys:
  *	sessionID
- *	persistantStore
+ *	persistentStore
  *	customConnectionURL
  */
 @implementation CPWOStore : CPPersistentStore
@@ -74,7 +74,7 @@
 {
 	if(_configuration != nil)
 	{
-		return [_configuration objectForKey:"persistantStore"];
+		return [_configuration objectForKey:"persistentStore"];
 	}
 	
 	return nil;
@@ -101,7 +101,7 @@
 	var resultSet = [[CPMutableSet alloc] init];
 	var request = @"{";
 	request = request + [@"session" toCDJSON] + " : " + [[self sessionID] toCDJSON] + ",";
-	request = request + [@"persistantStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
+	request = request + [@"persistentStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
 	request = request + [@"fetchProperties" toCDJSON] + " : " + [properties toCDJSON] + ",";
 	request = request + [@"method" toCDJSON] + " : " + [@"readDefaultObjects" toCDJSON];
 	request = request + @"}";
@@ -144,7 +144,7 @@
 	var resultSet = [[CPMutableSet alloc] init];
 	var request = @"{";
 	request = request + [@"session" toCDJSON] + " : " + [[self sessionID] toCDJSON] + ",";
-	request = request + [@"persistantStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
+	request = request + [@"persistentStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
 	request = request + [@"method" toCDJSON] + " : " + [@"saveObjects" toCDJSON] + ",";
 	request = request + [@"objects" toCDJSON] + " : " + [allObjects toCDJSON];
 	request = request + @"}";
@@ -196,7 +196,7 @@
 	
 	var request = @"{";
 	request = request + [@"session" toCDJSON] + " : " + [[self sessionID] toCDJSON] + ",";
-	request = request + [@"persistantStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
+	request = request + [@"persistentStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
 	request = request + [@"method" toCDJSON] + " : " + [@"fetchObjectsWithEntityNamed" toCDJSON] + ",";
 	request = request + [@"entityNamed" toCDJSON] + " : " + [aName toCDJSON] + ",";
 	request = request + [@"qualifier" toCDJSON] + " : " + [aQualifier toCDJSON] + ",";
@@ -233,7 +233,7 @@
 	
 	var request = @"{";
 	request = request + [@"session" toCDJSON] + " : " + [[self sessionID] toCDJSON] + ",";
-	request = request + [@"persistantStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
+	request = request + [@"persistentStore" toCDJSON] + " : " + [[self storeID] toCDJSON] + ",";
 	request = request + [@"method" toCDJSON] + " : " + [@"fetchObjectsWithID" toCDJSON] + ",";
 	request = request + [@"objectIDs" toCDJSON] + " : " + [objectIDs toCDJSON] + ",";
 	request = request + [@"fetchProperties" toCDJSON] + " : " + [properties toCDJSON];
