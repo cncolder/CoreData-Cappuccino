@@ -15,6 +15,7 @@
 ***** HEADER *****
 @public
 - (CPArray) executeFetchRequest:(CPFetchRequest)aFetchRequest;
+- (CPArray) executeStoreFetchRequest:(CPFetchRequest)aFetchRequest;
 
 @private
 - (CPSet) _executeLocalFetchRequest:(CPFetchRequest) aFetchRequest;
@@ -126,24 +127,47 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 - (CPArray) executeFetchRequest:(CPFetchRequest)aFetchRequest
 {
 	var result = nil;
-	
+
 	var localSetResult = [self _executeLocalFetchRequest:aFetchRequest];
 	var remoteSetResult = [self _executeStoreFetchRequest:aFetchRequest];
 	[remoteSetResult unionSet:localSetResult];
-	
+
 	var unsortedResult = [remoteSetResult allObjects];
-		
+
 	if([aFetchRequest sortDescriptors] != nil)
 		result = [unsortedResult sortedArrayUsingDescriptors:[aFetchRequest sortDescriptors]];
 	else
 		result = unsortedResult;
-	
+
 	if([aFetchRequest fetchLimit] > 0 && [result count] > [aFetchRequest fetchLimit])
 		return [result subarrayWithRange:CPMakeRange(0,[aFetchRequest fetchLimit])];
-		
-	return result;
-}   
 
+	return result;
+}
+
+/**
+    Execute a fetch on the store only.
+
+    The store must implement executeFetchRequest:inManagedObjectContext:error.
+*/
+- (CPArray) executeStoreFetchRequest:(CPFetchRequest)aFetchRequest
+{
+    var error;
+    var resultArray = [[CPMutableArray alloc] init];
+    var resultSet = [[self store] executeFetchRequest:aFetchRequest
+                              inManagedObjectContext:self
+                                               error:error];
+    if (resultSet != nil && [resultSet count] > 0 && error == nil)
+    {
+        var objectEnum = [resultSet objectEnumerator];
+        var objectFromResponse;
+        while((objectFromResponse = [objectEnum nextObject]))
+        {
+            [resultArray addObject:[self _registerObject:objectFromResponse]];
+        }
+    }
+    return resultArray;
+}
 
 - (CPSet) _executeLocalFetchRequest:(CPFetchRequest) aFetchRequest
 {
