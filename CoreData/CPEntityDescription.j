@@ -175,21 +175,29 @@
 
 - (BOOL)acceptValue:(id) aValue forProperty:(CPString) aKey
 {
-	var result = NO;
 	var theProperty = [[self propertiesByName] objectForKey:aKey]
-	result = [theProperty acceptValue:aValue];
-	return result;
+	return [theProperty acceptValue:aValue];
+}
+
+
+- (id)transformValue:(id)aValue forProperty:(CPString)aKey
+{
+	var theProperty = [[self attributesByName] objectForKey:aKey];
+    if (theProperty && ([theProperty typeValue] == CPDTransformableAttributeType))
+    {
+        var transformer = [CPValueTransformer valueTransformerForName:[theProperty valueTransformerName]];
+        if (transformer)
+        {
+            return [transformer transformedValue:aValue];
+        }
+    }
+    return aValue;
 }
 
 
 - (BOOL) isEqual:(CPEntityDescription)aEntity
 {
-	if([[aEntity name] isEqualToString:_name])
-	{
-		return YES;
-	}
-	
-	return NO;
+	return [[aEntity name] isEqualToString:_name];
 }
 
 
@@ -203,16 +211,13 @@
 	result = result + "name:" + [self name] + ";";
 	result = result + "\n";
 	result = result + "externalName:" + [self externalName] + ";";
-	
 	var propertiesE = [_properties objectEnumerator];
 	var aProperty;
-	
 	while((aProperty = [propertiesE nextObject]))
 	{
 		result = result + "\n";
 		result = result + [aProperty stringRepresentation];
 	}
-
 	return result;
 }
 

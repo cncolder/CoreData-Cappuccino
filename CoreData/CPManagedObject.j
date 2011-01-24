@@ -238,7 +238,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 - (void)takeStoredValue:(id)value forKey:(CPString)aKey
 {
 	if([self isPropertyOfTypeRelationship: aKey])
-	{		
+	{
 		var values;
 		if([value isKindOfClass:[CPSet class]])
 		{
@@ -248,23 +248,25 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		{
 			values = value;
 		}
-		
+
 		if(values != nil && [values count] > 0)
 		{
 			[self addObjects:values toBothSideOfRelationship:aKey];
-		}	
+		}
 		else
 		{
 			[self addObject:value toBothSideOfRelationship:aKey];
-		}	
+		}
 	}
 	else if([self isPropertyOfTypeAttribute: aKey])
 	{
 		[self willChangeValueForKey:aKey];
-		
-		if(value == nil || [[self entity] acceptValue:value forProperty:aKey])
+        var transformed = [[self entity] transformValue:value forProperty:aKey];
+		if (   value == nil
+            || [[self entity] acceptValue:transformed forProperty:aKey]
+           )
 		{
-			[self _setChangedObject:value forKey:aKey];
+			[self _setChangedObject:transformed forKey:aKey];
 			[self didChangeValueForKey:aKey];
 		}
 		else
@@ -369,7 +371,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		
 		//Add otherside
 		var localRelationshipDestinationName  = [localRelationship destinationEntityName];
-		var foreignRelationship = [self realtionshipWithDestination:[localRelationship destination]];
+		var foreignRelationship = [self relationshipWithDestination:[localRelationship destination]];
 		
 //		CPLog.info([[self objectID] stringRepresentation]);
 		var myObjectID = [[_context objectRegisteredForID:[self objectID]] objectID];
@@ -907,7 +909,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 }
 
 
-- (CPRelationshipDescription)realtionshipWithDestination:(CPEntityDescription)aEntity
+- (CPRelationshipDescription)relationshipWithDestination:(CPEntityDescription)aEntity
 {
 	var relationshipDict = [aEntity relationshipsByName];
 	var allKeys = [relationshipDict allKeys];

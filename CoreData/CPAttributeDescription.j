@@ -25,99 +25,87 @@ CPDTransformableAttributeType = 1200;
 
 @implementation CPAttributeDescription : CPPropertyDescription
 {
-	CPString _classValue;
-	int _typeValue @accessors(property=typeValue);
-	id _defaultValue @accessors(property= defaultValue);
+    CPString _classValue;
+    int      _typeValue @accessors(property=typeValue);
+    id       _defaultValue @accessors(property=defaultValue);
+    CPString _valueTransformerName @accessors(property=valueTransformerName);
 }
 
 - (void)setClassValue:(CPString) aClassValue
 {
-	_classValue = aClassValue;
+    _classValue = aClassValue;
 }
 
 - (Class) classValue
 {
-	var result = [CPObject class];
-	var classType = CPClassFromString(_classValue);
-	
-	if(classType != nil)
-	{
-		result = classType;
-	}
-	
-	return result
+    var classType = CPClassFromString(_classValue);
+    if(classType != nil)
+    {
+        return classType;
+    }
+    return [CPObject class];
 }
 
 - (CPString) classValueName
 {
-	return _classValue
+    return _classValue
 }
 
 - (CPString) typeName
 {
-	var result;
-	switch(_typeValue)
-	{
-		case 0:
-			result = "CPDUndefinedAttributeType";break;
-		case 100:
-			result = "CPDIntegerAttributeType";break;
-		case 200:
-			result = "CPDInteger16AttributeType";break;
-		case 300:
-			result = "CPDInteger32AttributeType";break;
-		case 400:
-			result = "CPDInteger64AttributeType";break;
-		case 500:
-			result = "CPDDecimalAttributeType";break;
-		case 600:
-			result = "CPDDoubleAttributeType";break;
-		case 700:
-			result = "CPDFloatAttributeType";break;
-		case 800:
-			result = "CPDStringAttributeType";break;
-		case 900:
-			result = "CPDBooleanAttributeType";break;
-		case 1000:
-			result = "CPDDateAttributeType";break;
-		case 1100:
-			result = "CPDBinaryDataAttributeType";break;
-		case 1200:
-			result = "CPDTransformableAttributeType";break;		
-		default:
-			result = "CPDUndefinedAttributeType";
-	}
-	
-	return result;
+    var result;
+    switch(_typeValue)
+    {
+        case 0:
+            result = "CPDUndefinedAttributeType";break;
+        case 100:
+            result = "CPDIntegerAttributeType";break;
+        case 200:
+            result = "CPDInteger16AttributeType";break;
+        case 300:
+            result = "CPDInteger32AttributeType";break;
+        case 400:
+            result = "CPDInteger64AttributeType";break;
+        case 500:
+            result = "CPDDecimalAttributeType";break;
+        case 600:
+            result = "CPDDoubleAttributeType";break;
+        case 700:
+            result = "CPDFloatAttributeType";break;
+        case 800:
+            result = "CPDStringAttributeType";break;
+        case 900:
+            result = "CPDBooleanAttributeType";break;
+        case 1000:
+            result = "CPDDateAttributeType";break;
+        case 1100:
+            result = "CPDBinaryDataAttributeType";break;
+        case 1200:
+            result = "CPDTransformableAttributeType";break;
+        default:
+            result = "CPDUndefinedAttributeType";
+    }
+    return result;
 }
 
 
 - (BOOL)acceptValue:(id) aValue
 {
-	var result = NO;
-	
-	if([aValue isKindOfClass:[self classValue]])
-	{
-		result = YES;
-	}
-	
-	return result;
+    return [aValue isKindOfClass:[self classValue]];
 }
 
 - (CPString)stringRepresentation
 {
-	var result = "\n";
-	result = result + "\n";
-	result = result + "-CPAttributeDescription-";
-	
-	result = result + "\n";
-	result = result + "name:" + [self name] + ";";
-	result = result + "\n";
-	result = result + "type:" + [self typeValue] + ";";
-	result = result + "\n";
-	result = result + "optional:" + [self isOptional] + ";";
-
-	return result;
+    var result = "\n";
+    result = result + "\n";
+    result = result + "-CPAttributeDescription-";
+    result = result + "\n";
+    result = result + "name:" + [self name] + ";";
+    result = result + "\n";
+    result = result + "type:" + [self typeValue] + ";";
+    result = result + "\n";
+    result = result + "optional:" + [self isOptional] + ";";
+    return result;
 }
 
 @end
