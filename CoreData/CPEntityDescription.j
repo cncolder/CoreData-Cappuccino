@@ -205,7 +205,6 @@
     if (theProperty)
     {
         var transformer = [self _transformerForProperty:theProperty];
-CPLog.warn("reverseTransformValue: transformer=%@", transformer);
         if (transformer && [[transformer class] allowsReverseTransformation])
         {
             return [transformer reverseTransformedValue:aValue];
@@ -227,7 +226,6 @@ CPLog.warn("reverseTransformValue: transformer=%@", transformer);
         transformerName = [aProperty typeName];
         transformerName += "ValueTransformer";
     }
-CPLog.warn("_transformerForProperty: name=%s", transformerName);
     return [CPValueTransformer valueTransformerForName:transformerName];
 }
 
