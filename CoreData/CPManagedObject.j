@@ -255,12 +255,11 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	else if([self isPropertyOfTypeAttribute: aKey])
 	{
 		[self willChangeValueForKey:aKey];
-        var transformed = [[self entity] reverseTransformValue:value forProperty:aKey];
 		if (   value == nil
-            || [[self entity] acceptValue:transformed forProperty:aKey]
+            || [[self entity] acceptValue:value forProperty:aKey]
            )
 		{
-			[self _setChangedObject:transformed forKey:aKey];
+			[self _setChangedObject:value forKey:aKey];
 			[self didChangeValueForKey:aKey];
 		}
 		else
@@ -761,9 +760,10 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 }
 */
 - (void)_setChangedObject:(id) aObject forKey:(CPString) aKey
-{	
-	[_changedData setObject:aObject forKey:aKey];
-	[_data setObject:aObject forKey:aKey];
+{
+    var transformed = [[self entity] reverseTransformValue:aObject forProperty:aKey];
+	[_changedData setObject:transformed forKey:aKey];
+	[_data setObject:transformed forKey:aKey];
 }
 
 - (void)_resetChangedDataForProperties

@@ -189,18 +189,7 @@
 	var theProperty = [[self attributesByName] objectForKey:aKey];
     if (theProperty)
     {
-        var transformerName = "";
-        var type = [theProperty typeValue];
-        if (type == CPDTransformableAttributeType)
-        {
-            transformerName = [theProperty valueTransformerName];
-        }
-        else
-        {// This allows us to write transformers for standard data types eg. CPDate
-            transformerName = [theProperty typeName];
-            transformerName += "ValueTransformer";
-        }
-        var transformer = [CPValueTransformer valueTransformerForName:[theProperty valueTransformerName]];
+        var transformer = [self _transformerForProperty:theProperty];
         if (transformer)
         {
             return [transformer transformedValue:aValue];
@@ -213,9 +202,10 @@
 - (id)reverseTransformValue:(id)aValue forProperty:(CPString)aKey
 {
 	var theProperty = [[self attributesByName] objectForKey:aKey];
-    if (theProperty && ([theProperty typeValue] == CPDTransformableAttributeType))
+    if (theProperty)
     {
-        var transformer = [CPValueTransformer valueTransformerForName:[theProperty valueTransformerName]];
+        var transformer = [self _transformerForProperty:theProperty];
+CPLog.warn("reverseTransformValue: transformer=%@", transformer);
         if (transformer && [[transformer class] allowsReverseTransformation])
         {
             return [transformer reverseTransformedValue:aValue];
@@ -224,6 +214,22 @@
     return aValue;
 }
 
+-(CPString)_transformerForProperty:(CPPropertyDescription)aProperty
+{
+    var transformerName = "";
+    var type = [aProperty typeValue];
+    if (type == CPDTransformableAttributeType)
+    {
+        transformerName = [aProperty valueTransformerName];
+    }
+    else
+    {// This allows us to write transformers for standard data types eg. CPDate
+        transformerName = [aProperty typeName];
+        transformerName += "ValueTransformer";
+    }
+CPLog.warn("_transformerForProperty: name=%s", transformerName);
+    return [CPValueTransformer valueTransformerForName:transformerName];
+}
 
 - (BOOL) isEqual:(CPEntityDescription)aEntity
 {

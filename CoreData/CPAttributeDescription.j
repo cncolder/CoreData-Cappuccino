@@ -22,21 +22,20 @@ CPDDateAttributeType = 1000;
 CPDBinaryDataAttributeType = 1100;
 CPDTransformableAttributeType = 1200;
 
-TypeNames = {
-    CPDUndefinedAttributeType : "CPDUndefinedAttributeType",
-    CPDIntegerAttributeType : "CPDIntegerAttributeType",
-    CPDInteger16AttributeType : "CPDInteger16AttributeType",
-    CPDInteger32AttributeType : "CPDInteger32AttributeType",
-    CPDInteger64AttributeType : "CPDInteger64AttributeType",
-    CPDDecimalAttributeType : "CPDDecimalAttributeType",
-    CPDDoubleAttributeType : "CPDDoubleAttributeType",
-    CPDFloatAttributeType : "CPDFloatAttributeType",
-    CPDStringAttributeType : "CPDStringAttributeType",
-    CPDBooleanAttributeType : "CPDBooleanAttributeType",
-    CPDDateAttributeType : "CPDDateAttributeType",
-    CPDBinaryDataAttributeType : "CPDBinaryDataAttributeType",
-    CPDTransformableAttributeType : "CPDTransformableAttributeType"
-}
+TypeNames = {}
+TypeNames[CPDUndefinedAttributeType] = "CPDUndefinedAttributeType";
+TypeNames[CPDIntegerAttributeType] = "CPDIntegerAttributeType";
+TypeNames[CPDInteger16AttributeType] = "CPDInteger16AttributeType";
+TypeNames[CPDInteger32AttributeType] = "CPDInteger32AttributeType";
+TypeNames[CPDInteger64AttributeType] = "CPDInteger64AttributeType";
+TypeNames[CPDDecimalAttributeType] = "CPDDecimalAttributeType";
+TypeNames[CPDDoubleAttributeType] = "CPDDoubleAttributeType";
+TypeNames[CPDFloatAttributeType] = "CPDFloatAttributeType";
+TypeNames[CPDStringAttributeType] = "CPDStringAttributeType";
+TypeNames[CPDBooleanAttributeType] = "CPDBooleanAttributeType";
+TypeNames[CPDDateAttributeType] = "CPDDateAttributeType";
+TypeNames[CPDBinaryDataAttributeType] = "CPDBinaryDataAttributeType";
+TypeNames[CPDTransformableAttributeType] = "CPDTransformableAttributeType";
 
 
 @implementation CPAttributeDescription : CPPropertyDescription
@@ -69,7 +68,11 @@ TypeNames = {
 
 - (CPString) typeName
 {
-    return TypeNames[_typeValue] || TypeNames[CPDUndefinedAttributeType];
+    if (_typeValue)
+    var name = TypeNames[_typeValue];
+    if (name != undefined)
+        return name;
+    return TypeNames[CPDUndefinedAttributeType];
 }
 
 - (BOOL)acceptValue:(id) aValue
