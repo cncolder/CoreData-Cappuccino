@@ -18,9 +18,25 @@ CPDDoubleAttributeType = 600;
 CPDFloatAttributeType = 700;
 CPDStringAttributeType = 800;
 CPDBooleanAttributeType = 900;
-CPDDateAttributeType = 1000,
-CPDBinaryDataAttributeType = 1100,
+CPDDateAttributeType = 1000;
+CPDBinaryDataAttributeType = 1100;
 CPDTransformableAttributeType = 1200;
+
+TypeNames = {
+    CPDUndefinedAttributeType : "CPDUndefinedAttributeType",
+    CPDIntegerAttributeType : "CPDIntegerAttributeType",
+    CPDInteger16AttributeType : "CPDInteger16AttributeType",
+    CPDInteger32AttributeType : "CPDInteger32AttributeType",
+    CPDInteger64AttributeType : "CPDInteger64AttributeType",
+    CPDDecimalAttributeType : "CPDDecimalAttributeType",
+    CPDDoubleAttributeType : "CPDDoubleAttributeType",
+    CPDFloatAttributeType : "CPDFloatAttributeType",
+    CPDStringAttributeType : "CPDStringAttributeType",
+    CPDBooleanAttributeType : "CPDBooleanAttributeType",
+    CPDDateAttributeType : "CPDDateAttributeType",
+    CPDBinaryDataAttributeType : "CPDBinaryDataAttributeType",
+    CPDTransformableAttributeType : "CPDTransformableAttributeType"
+}
 
 
 @implementation CPAttributeDescription : CPPropertyDescription
@@ -53,41 +69,8 @@ CPDTransformableAttributeType = 1200;
 
 - (CPString) typeName
 {
-    var result;
-    switch(_typeValue)
-    {
-        case 0:
-            result = "CPDUndefinedAttributeType";break;
-        case 100:
-            result = "CPDIntegerAttributeType";break;
-        case 200:
-            result = "CPDInteger16AttributeType";break;
-        case 300:
-            result = "CPDInteger32AttributeType";break;
-        case 400:
-            result = "CPDInteger64AttributeType";break;
-        case 500:
-            result = "CPDDecimalAttributeType";break;
-        case 600:
-            result = "CPDDoubleAttributeType";break;
-        case 700:
-            result = "CPDFloatAttributeType";break;
-        case 800:
-            result = "CPDStringAttributeType";break;
-        case 900:
-            result = "CPDBooleanAttributeType";break;
-        case 1000:
-            result = "CPDDateAttributeType";break;
-        case 1100:
-            result = "CPDBinaryDataAttributeType";break;
-        case 1200:
-            result = "CPDTransformableAttributeType";break;
-        default:
-            result = "CPDUndefinedAttributeType";
-    }
-    return result;
+    return TypeNames[_typeValue] || TypeNames[CPDUndefinedAttributeType];
 }
-
 
 - (BOOL)acceptValue:(id) aValue
 {
