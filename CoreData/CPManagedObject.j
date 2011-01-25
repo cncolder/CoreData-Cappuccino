@@ -773,6 +773,8 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (void)_applyToContext:(CPManagedObjectContext) context
 {
+    if (_context === context)
+        return
 	_context = context;
 	if(_objectID == nil)
 	{

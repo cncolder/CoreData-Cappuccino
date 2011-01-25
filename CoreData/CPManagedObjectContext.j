@@ -403,21 +403,29 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
  */
 - (CPManagedObject) objectRegisteredForID: (CPManagedObjectID) aObjectID
 {
-	var e;
-	var object = nil;
-	
 	if(aObjectID != nil)
-	{			
-		if([aObjectID validatedLocalID] || [aObjectID validatedGlobalID])
-		{		
-			e = [_registeredObjects objectEnumerator];
-			while ((object = [e nextObject]) != nil)
-			{		
-				if ([[object objectID] isEqualToLocalID: aObjectID] == YES)
-				{
-					return object;
-				}
-				else if ([[object objectID] isEqualToGlobalID: aObjectID] == YES)
+	{
+        var localID = nil;
+		if ([aObjectID validatedLocalID])
+        {
+            localID = [aObjectID localID];
+        }
+        var globalID = nil;
+		if ([aObjectID validatedGlobalID])
+        {
+            globalID = [aObjectID globalID];
+        }
+		if (localID || globalID)
+		{
+			var e = [_registeredObjects objectEnumerator],
+                id,
+                object;
+			while (object = [e nextObject])
+			{
+                id = [object objectID];
+				if (   (localID && [id isEqualToLocalID:aObjectID] == YES)
+                    || (globalID && [id isEqualToGlobalID:aObjectID] == YES)
+                   )
 				{
 					return object;
 				}
@@ -661,17 +669,22 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 
 /*
  *	Register and Unregister object
+
+    If aObject is already in the context only a CPManagedObjectContextObjectsDidChangeNotification
+    is sent.
  */
 - (CPManagedObject) _registerObject: (CPManagedObject) aObject
 {
-//	CPLog.trace("localID: " + [[aObject objectID] localID]);
 	var regObject = [self objectRegisteredForID:[aObject objectID]];
 	if(regObject != nil)
 	{
-		//update regobject with object
-		[regObject _updateWithObject: aObject];
-		[regObject _applyToContext:self];
-		aObject = regObject;
+        if (regObject !== aObject)
+        {
+            //update regobject with object
+            [regObject _updateWithObject: aObject];
+            [regObject _applyToContext:self];
+            aObject = regObject;
+        }
 		var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: regObject]
 											   forKey: CPDUpdatedObjectsKey];
 		[[CPNotificationCenter defaultCenter]
@@ -681,26 +694,20 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	}
 	else
 	{
-		if(![[aObject objectID] validatedLocalID])
+		if (![[aObject objectID] validatedLocalID])
 		{
 			[aObject setEntity:[[aObject objectID] entity]];
 			[[aObject objectID] setLocalID:[CPManagedObjectID createLocalID]];
 			[aObject _applyToContext:self];
-			
-			[_registeredObjects addObject: aObject];	
+			[_registeredObjects addObject: aObject];
 		}
 		else
 		{
 			[_registeredObjects addObject: aObject];
 		}
 		[aObject _applyToContext:self];
-//		CPLog.trace("aobject:localID: " + [[aObject objectID] localID]);
-		return aObject;
-	}	
-	
-	[regObject _applyToContext:self];
-//	CPLog.trace("reg:localID: " + [[regObject objectID] localID]);
-	return regObject;
+	}
+	return aObject;
 }
 
 
