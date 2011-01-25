@@ -48,7 +48,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 {
 	BOOL _autoSaveChanges;
 	CPPersistentStoreCoordinator _storeCoordinator @accessors(property=storeCoordinator);
-	
+
 	CPMutableSet _registeredObjects;
 	CPMutableSet _insertedObjectIDs;
 	CPMutableSet _updatedObjectIDs;
@@ -536,7 +536,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
  */
 - (CPManagedObject) insertNewObjectForEntityForName:(CPString) entity
 {
-	var result_object;	
+	var result_object;
 	var tmpentity = [[self model] entityWithName:entity];
 	if(tmpentity != nil)
 	{
@@ -547,7 +547,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 			[self insertObject:result_object];
 		}
 	}
-		
+
 	return result_object
 }
 
@@ -555,30 +555,26 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
  *	Insert and delete registered objects
  */
 - (void) insertObject: ({CPManagedObject}) aObject
-{		
+{
 	if([aObject objectID] == nil)
 	{
 		[aObject setObjectID:[[CPManagedObjectID alloc] initWithEntity:[aObject entity] globalID:nil isTemporary:YES]];
 	}
-	if ([self _deletedObjectWithID: [aObject objectID]] != nil)
+    var deletedObject = [self _deletedObjectWithID: [aObject objectID]];
+	if (deletedObject != nil)
     {
 		[self _registerObject: aObject];
 		[_deletedObjects removeObject: aObject];
 		[_insertedObjectIDs addObject: [aObject objectID]];
 
     }
-	else if ([self _deletedObjectWithID: [aObject objectID]] == nil)
+	else
     {
 		[self _registerObject: aObject];
 		[_insertedObjectIDs addObject: [aObject objectID]];
     }
-	else
-    {
-      return;
-	}
-
 	[aObject _applyToContext: self];
-	
+
 	var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
 											   forKey: CPDInsertedObjectsKey];
 	[[CPNotificationCenter defaultCenter]
@@ -597,30 +593,30 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 - (void) _deleteObject: ({CPManagedObject}) aObject saveAfterDeletion:(BOOL) saveAfterDeletion
 {
 	if ([self objectRegisteredForID: [aObject objectID]] != nil)
-	{		
-		if([aObject _solveRelationshipsWithDeleteRules] == YES)
+	{
+		if ([aObject _solveRelationshipsWithDeleteRules] == YES)
 		{
 			var needToSave = NO;
 			//if delete rule is Deny the result is false
 			[aObject setDeleted: YES];
-			
+
 			if([[aObject objectID] validatedGlobalID])
 			{
 				[_deletedObjects addObject: aObject];
 				needToSave = YES;
 			}
-			
+
 			[_insertedObjectIDs removeObject: [aObject objectID]];
 			[self _unregisterObject: aObject];
-			
+
 			var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
 													   forKey: CPDDeletedObjectsKey];
-			
+
 			[[CPNotificationCenter defaultCenter]
 						postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
 									  object: self
 									userInfo: userInfo];
-									
+
 			if(saveAfterDeletion && [self autoSaveChanges] && needToSave)
 				[self saveChanges];
 		}
@@ -629,7 +625,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	{
 		[aObject setDeleted: YES];
 		[_deletedObjects addObject: aObject];
-	}	
+	}
 }
 
 - (void) deleteObjectWithID: (CPManagedObjectID) aObjectId
@@ -698,13 +694,8 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 		{
 			[aObject setEntity:[[aObject objectID] entity]];
 			[[aObject objectID] setLocalID:[CPManagedObjectID createLocalID]];
-			[aObject _applyToContext:self];
-			[_registeredObjects addObject: aObject];
 		}
-		else
-		{
-			[_registeredObjects addObject: aObject];
-		}
+        [_registeredObjects addObject: aObject];
 		[aObject _applyToContext:self];
 	}
 	return aObject;

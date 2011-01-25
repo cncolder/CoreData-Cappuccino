@@ -154,20 +154,15 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 					{
 						//if the regObject is nil we remove it
 						regObject = [_context updateObjectWithID:aValue mergeChanges:YES];
-//						CPLog.trace("_ID: " + [[regObject objectID] localID]);
 						if(regObject != nil)
 						{
 							[values removeObject:aValue];
 							[values addObject:[regObject objectID]];
-//							[_data setObject:values forKey:aKey];
-//							[_changedData setObject:value forKey:aKey];
 							[self _setChangedObject:values forKey:aKey];
 						}
 						else
 						{
 							[values removeObject:aValue];
-//							[_data setObject:values forKey:aKey];
-//							[_changedData setObject:value forKey:aKey];
 							[self _setChangedObject:values forKey:aKey];
 						}
 					}
@@ -184,18 +179,13 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 			if(regObject == nil && [_data objectForKey:aKey] != nil)
 			{
 				regObject = [_context updateObjectWithID:[_data objectForKey:aKey] mergeChanges:YES];
-//				CPLog.trace("ID: " + [[regObject objectID] localID]);
 				//if the regObject is nil we remove it
 				if(regObject != nil)
 				{
-//					[_data setObject:[regObject objectID] forKey:aKey];
-//					[_changedData setObject:[regObject objectID] forKey:aKey];
 					[self _setChangedObject:[regObject objectID] forKey:aKey];
 				}
 				else
 				{
-//					[_data setObject:nil forKey:aKey];
-//					[_changedData setObject:nil forKey:aKey];
 					[self _setChangedObject:nil forKey:aKey];
 				}
 			}
