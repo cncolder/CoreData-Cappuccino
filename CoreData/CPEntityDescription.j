@@ -187,8 +187,19 @@
 - (id)transformValue:(id)aValue forProperty:(CPString)aKey
 {
 	var theProperty = [[self attributesByName] objectForKey:aKey];
-    if (theProperty && ([theProperty typeValue] == CPDTransformableAttributeType))
+    if (theProperty)
     {
+        var transformerName = "";
+        var type = [theProperty typeValue];
+        if (type == CPDTransformableAttributeType)
+        {
+            transformerName = [theProperty valueTransformerName];
+        }
+        else
+        {// This allows us to write transformers for standard data types eg. CPDate
+            transformerName = [theProperty typeName];
+            transformerName += "ValueTransformer";
+        }
         var transformer = [CPValueTransformer valueTransformerForName:[theProperty valueTransformerName]];
         if (transformer)
         {
