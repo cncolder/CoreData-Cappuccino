@@ -28,27 +28,33 @@
 */
 CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueTypeForProperty";
 
+
+/**
+    Provides the management for object data.
+
+    Object data is always assigned to an entity description which contains the
+    property definitions.
+    Access to properties must be done using KVC.
+*/
 @implementation CPManagedObject : CPObject
 {
 	CPEntityDescription _entity @accessors(property=entity);
 	CPManagedObjectContext _context @accessors(property=context);
 	CPPersistentStore _store @accessors(property=store);
-	
+
 	CPManagedObjectID _objectID @accessors(property=objectID);
 	BOOL _isUpdated @accessors(getter=isUpdated, setter=setUpdated:);
 	BOOL _isDeleted @accessors(getter=isDeleted, setter=setDeleted:);
 	BOOL _isFault @accessors(getter=isFault, setter=setFault:);
-	
+
 	CPMutableDictionary _data @accessors(getter=data);
 	CPMutableDictionary _changedData @accessors(getter=changedData);
 }
-
 
 - (void)dealloc
 {
 	[super dealloc];
 }
-
 
 - (id)initWithEntity:(CPEntityDescription)entity
 {
@@ -64,7 +70,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		_isUpdated = NO;
 		[self _resetObjectDataForProperties];
 	}
-	
 	return self;
 }
 
@@ -83,10 +88,8 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		[self _resetObjectDataForProperties];
 		[_context insertObject:self];
 	}
-	
 	return self;
 }
-			
 
 /*
  *	KVC/KVO methods
@@ -94,17 +97,14 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 - (id)valueForKey:(CPString)aKey
 {
 	var result;
-
-	if([self _containsKey:aKey])
-	{
+	if ([self _containsKey:aKey])
+	{// The key is a property from the entity
 		result = [self storedValueForKey:aKey];
 	}
 	else
 	{
 		result = [super valueForKey:aKey];
 	}
-	
-
 	return result;
 }
 
@@ -114,13 +114,17 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	if([self isPropertyOfTypeAttribute:aKey])
 	{
 		[self didAccessValueForKey:aKey];
-		return [_data objectForKey:aKey];
+        // Transform the value.
+        // We do this here because we want to store the data untransformed.
+        // The advantage of this is that we never modify data coming from an
+        // external store except we really edit it.
+        return [[self entity] transformValue:[_data objectForKey:aKey]
+                                 forProperty:aKey];
 	}
 	else if([self isPropertyOfTypeRelationship:aKey])
 	{
 		var value = [_data objectForKey:aKey];
 		var values = nil;
-		
 		if(value != nil)
 		{
 			if([value isKindOfClass:[CPSet class]])
@@ -134,7 +138,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 				values = [CPMutableSet setWithArray: value];
 			}
 		}
-		
 		if(values != nil)
 		{
 			//return a qualified object set instead of a objectid array
@@ -145,7 +148,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 			while((aValue = [valuesEnumerator nextObject]))
 			{
 				if(aValue != nil)
-				{					
+				{
 					var regObject = [_context objectRegisteredForID: aValue];
 					if(regObject == nil)
 					{
@@ -168,7 +171,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 							[self _setChangedObject:values forKey:aKey];
 						}
 					}
-					
 					if(regObject != nil)
 						[resultSet addObject: regObject];
 				}
@@ -179,11 +181,9 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		else if([_data objectForKey:aKey] != nil)
 		{
 			var regObject = [_context objectRegisteredForID: [_data objectForKey:aKey]];
-			
 			if(regObject == nil && [_data objectForKey:aKey] != nil)
 			{
 				regObject = [_context updateObjectWithID:[_data objectForKey:aKey] mergeChanges:YES];
-				
 //				CPLog.trace("ID: " + [[regObject objectID] localID]);
 				//if the regObject is nil we remove it
 				if(regObject != nil)
@@ -207,9 +207,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	return nil;
 }
 
-
-
-
 - (id)valueForKeyPath:(CPString)aKeyPath
 {
 	return [super valueForKeyPath:aKeyPath];
@@ -219,9 +216,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 {
 	return [super valueForKeyPath:aKeyPath];
 }
-
-
-
 
 - (void)setValue:(id)aValue forKey:(CPString)aKey
 {
@@ -261,7 +255,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	else if([self isPropertyOfTypeAttribute: aKey])
 	{
 		[self willChangeValueForKey:aKey];
-        var transformed = [[self entity] transformValue:value forProperty:aKey];
+        var transformed = [[self entity] reverseTransformValue:value forProperty:aKey];
 		if (   value == nil
             || [[self entity] acceptValue:transformed forProperty:aKey]
            )
@@ -777,11 +771,9 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	_changedData = [[CPMutableDictionary alloc] init];
 }
 
-
 - (void)_applyToContext:(CPManagedObjectContext) context
 {
 	_context = context;
-	
 	if(_objectID == nil)
 	{
 		_objectID = [[CPManagedObjectID alloc] initWithEntity:_entity globalID:nil isTemporary:YES];
@@ -790,26 +782,21 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	}
 }
 
-
 - (CPArray)_properties
 {
 	return [_entity propertyNames];
 }
-
-
 
 - (BOOL)_containsKey:(CPString) aKey
 {
 	return [[_data allKeys] containsObject: aKey];
 }
 
-
 - (void)_setData:(CPDictionary) aDictionary
 {
 	_data = aDictionary;
 	var e = [[_entity properties] objectEnumerator];
 	var property;
-	
 	while ((property = [e nextObject]) != nil)
     {
 		var propName = [property name];
@@ -828,15 +815,13 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	_data = [[CPMutableDictionary alloc] init];
 	var e = [[_entity properties] objectEnumerator];
 	var property;
-		
 	while ((property = [e nextObject]) != nil)
     {
 		var propName = [property name];
 		//@TODO nil is no longer supported as object
+        //TODO: set the default value from the property
 		[_data setObject:nil forKey:propName];
 	}
-	
-//	CPLog.trace([_data allKeys]);
 }
 
 - (BOOL)isPropertyOfTypeAttribute:(CPString)aKey

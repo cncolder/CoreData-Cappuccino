@@ -179,7 +179,11 @@
 	return [theProperty acceptValue:aValue];
 }
 
+/**
+    Transform a value with the properties transformer into an internal value.
 
+    This is used by the managed object when a value is returned from the object.
+*/
 - (id)transformValue:(id)aValue forProperty:(CPString)aKey
 {
 	var theProperty = [[self attributesByName] objectForKey:aKey];
@@ -189,6 +193,21 @@
         if (transformer)
         {
             return [transformer transformedValue:aValue];
+        }
+    }
+    return aValue;
+}
+
+
+- (id)reverseTransformValue:(id)aValue forProperty:(CPString)aKey
+{
+	var theProperty = [[self attributesByName] objectForKey:aKey];
+    if (theProperty && ([theProperty typeValue] == CPDTransformableAttributeType))
+    {
+        var transformer = [CPValueTransformer valueTransformerForName:[theProperty valueTransformerName]];
+        if (transformer && [[transformer class] allowsReverseTransformation])
+        {
+            return [transformer reverseTransformedValue:aValue];
         }
     }
     return aValue;
