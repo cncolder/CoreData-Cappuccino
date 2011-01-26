@@ -143,6 +143,17 @@ task ("documentation", function()
         print("doxygen not installed. skipping documentation generation.");
 });
 
+
+task("test", function()
+{
+    var tests = new FileList('Tests/**/*Test.j'),
+        cmd = ["ojtest"].concat(tests.items()),
+        code = OS.system(cmd.map(OS.enquote).join(" "));
+    if (code !== 0)
+        OS.exit(code);
+});
+
+
 executableExists = function(/*String*/ executableName)
 {
     var paths = ENV["PATH"].split(':');

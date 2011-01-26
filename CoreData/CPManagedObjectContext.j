@@ -244,12 +244,9 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 
 - (BOOL)saveAll
 {
-	var result = YES;
 	var error = nil;
-	
-	result = [self reset];
+	var result = [self reset];
 	[[self store] saveAll:[self registeredObjects] error:error];
-	
 	[[CPNotificationCenter defaultCenter]
 						postNotificationName: CPManagedObjectContextDidSaveAllObjectsNotification
 									  object: self
@@ -264,65 +261,67 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	var result = YES;
 	var resultSet = nil;
 	var propertiesDictionary = [[CPMutableDictionary alloc] init];
-	
+
 	var allEntities = [[[self model] entities] objectEnumerator];
 	var aEntity;
-	
+
 	while((aEntity = [allEntities nextObject]))
 	{
-		var propertiesFromEntity = [CPSet setWithArray: [aEntity propertyNames]]; 
+		var propertiesFromEntity = [CPSet setWithArray: [aEntity propertyNames]];
 		[propertiesDictionary setObject:propertiesFromEntity forKey:[aEntity name]];
 	}
-
 	resultSet = [[self store] loadAll:propertiesDictionary inManagedObjectContext:self error:error];
 	if(resultSet != nil && [resultSet count] > 0 && error == nil)
-	{		
+	{
 		var resultEnumerator = [[resultSet allObjects] objectEnumerator];
 		var objectFromResponse;
-				
+
 		while(objectFromResponse = [resultEnumerator nextObject])
 		{
-			[self _registerObject:objectFromResponse];	
+			[self _registerObject:objectFromResponse];
 		}
 	}
-	
-	[self hasChanges];
-	[[CPNotificationCenter defaultCenter] postNotificationName:CPManagedObjectContextDidLoadObjectsNotification 
-														object: self 
+	[[CPNotificationCenter defaultCenter] postNotificationName:CPManagedObjectContextDidLoadObjectsNotification
+														object: self
 													  userInfo: nil];
 	return result;
 }
 
-			   
+
 - (BOOL)saveChanges
 {
+	if (![self hasChanges])
+        return YES
 	var result = NO;
-
-	if([self hasChanges] && [[self store] respondsToSelector: @selector(saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)])
+	if ([[self store] respondsToSelector:@selector(
+                          saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)]
+       )
 	{
-		var error = nil;	
+		var error = nil;
 		var updatedObjects = [self updatedObjects];
 		var insertedObjects = [self insertedObjects];
 		var deletedObjects = [self deletedObjects];
-		
+
 		[self _validateUpdatedObject:updatedObjects insertedObjects:insertedObjects];
-		
-		if([updatedObjects count] > 0 || [insertedObjects count] > 0 || [deletedObjects count] > 0)
+
+		if (   [updatedObjects count] > 0
+            || [insertedObjects count] > 0
+            || [deletedObjects count] > 0
+           )
 		{
 			var resultSet = [[self store] saveObjectsUpdated:updatedObjects
-												inserted:insertedObjects
-												 deleted:deletedObjects
-								  inManagedObjectContext:self
-												   error:error];
-					  
-			if(resultSet != nil && [resultSet count] > 0 && error == nil)
+                                                    inserted:insertedObjects
+                                                     deleted:deletedObjects
+                                      inManagedObjectContext:self
+                                                       error:error];
+
+			if (resultSet != nil && [resultSet count] > 0 && error == nil)
 			{
 				var objectsEnum = [resultSet objectEnumerator];
 				var objectFromResponse;
 				while((objectFromResponse = [objectsEnum nextObject]))
 				{
 					var registeredObject = [self objectRegisteredForID:[objectFromResponse objectID]];
-				
 					if(registeredObject != nil)
 					{
 						[[registeredObject objectID] setGlobalID: [[objectFromResponse objectID] globalID]];
@@ -330,27 +329,22 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 					}
 				}
 			}
-			if(error == nil)
+			if (error == nil)
 				result = [self reset];
-			
 			[[CPNotificationCenter defaultCenter]
 				postNotificationName: CPManagedObjectContextDidSaveNotification
 							  object: self
 							userInfo: nil];
-							
 			[[CPNotificationCenter defaultCenter]
 								postNotificationName: CPManagedObjectContextDidSaveChangedObjectsNotification
 											  object: self
 											userInfo: nil];
-											
-		
 		}
 	}
 	else
 	{
 		result = [self saveAll];
 	}
-	
 	return result;
 }
 
@@ -360,17 +354,17 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	var unionSet = [[CPMutableSet alloc] init];
 	[unionSet unionSet:updated];
 	[unionSet unionSet:inserted];
-	
+
 	var enumerator = [unionSet objectEnumerator];
 	var aObject;
-	
+
 	while((aObject = [enumerator nextObject]))
 	{
 		if(![aObject validateForUpdate])
 		{
 			[updated removeObject:aObject];
 			[inserted removeObject:aObject];
-			
+
 			var objectEnum = [unionSet objectEnumerator];
 			var object;
 			while((object = [objectEnum nextObject]))
@@ -393,9 +387,9 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 	CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
 	CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
 
-	return ([_updatedObjectIDs count] > 0) ||
-			([_insertedObjectIDs count] > 0) ||
-			([_deletedObjects count] > 0);
+    return    ([_updatedObjectIDs count] > 0)
+           || ([_insertedObjectIDs count] > 0)
+           || ([_deletedObjects count] > 0);
 }
 
 /*

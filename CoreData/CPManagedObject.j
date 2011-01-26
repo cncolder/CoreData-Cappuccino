@@ -620,9 +620,9 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (void)_updateWithObject:(CPManagedObject) aObject
 {
-	[_objectID updateWithObjectID: [aObject objectID]];
-	
-	var data = [[aObject data] allKeys];	
+	[_objectID updateWithObjectID:[aObject objectID]];
+
+	var data = [[aObject data] allKeys];
 	var i = 0;
 	for(i = 0;i<[data count];i++)
 	{
@@ -650,16 +650,16 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 - (BOOL)_validateForChanges
 {
 	var result = YES;
-	
+
 	var mandatoryAttributes = [_entity mandatoryAttributes];
 	var mandatoryRelationships = [_entity mandatoryRelationships];
 	var relationships = [_entity relationshipsByName];
-	
+
 	var i = 0;
 	for(i=0;i<[[_data allKeys] count];i++)
 	{
 		var property = [[_data allKeys] objectAtIndex:i];
-		
+
 //		CPLog.debug("Validate property: " + property);
 		if([mandatoryAttributes containsObject:property])
 		{
@@ -673,7 +673,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 		{
 //			CPLog.trace("property: " + property + " is not a not null property");
 		}
-		
+
 		if([relationships objectForKey:property])
 		{
 //			CPLog.trace("relation: " + property + " is a relation");
@@ -685,13 +685,13 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 					return NO;
 				}
 			}
-			
+
 			var aRelationship = [relationships objectForKey:property];
 			if([aRelationship isToMany])
 			{
 				var valueE = [[self valueForKey:property] objectEnumerator];
 				var aObj;
-				
+
 				while((aObj = [valueE nextObject]))
 				{
 					if(![aObj _validateForChanges])
@@ -701,13 +701,12 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 					}
 				}
 			}
-		}	
+		}
 		else
 		{
 //			CPLog.debug("relation: " + property + " is not a relation");
 		}
 	}
-	
 	return result;
 }
 
@@ -761,7 +760,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 	_changedData = [[CPMutableDictionary alloc] init];
 }
 
-- (void)_applyToContext:(CPManagedObjectContext) context
+- (void)_applyToContext:(CPManagedObjectContext)context
 {
     if (_context === context)
         return
