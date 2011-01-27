@@ -24,6 +24,9 @@
 
     // Managing How Results Are Returned
     CPArray _propertiesToFetch @accessors(property=propertiesToFetch);
+
+    // response data set if an error occured during a fetch
+    CPError error @accessors;
 }
 
 @end
