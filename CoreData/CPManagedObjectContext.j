@@ -150,6 +150,10 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
     Execute a fetch on the store only.
 
     The store must implement executeFetchRequest:inManagedObjectContext:error.
+
+    Transparent mode:
+        Data received from the store is not added to the managed object
+        context.
 */
 - (CPArray) executeStoreFetchRequest:(CPFetchRequest)aFetchRequest
 {
@@ -166,11 +170,19 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
              && [resultSet count] > 0
             )
     {
+        var transparent = [aFetchRequest transparentFetch];
         var objectEnum = [resultSet objectEnumerator];
         var objectFromResponse;
         while ((objectFromResponse = [objectEnum nextObject]))
         {
-            [resultArray addObject:[self _registerObject:objectFromResponse]];
+            if (transparent)
+            {
+                [resultArray addObject:objectFromResponse];
+            }
+            else
+            {
+                [resultArray addObject:[self _registerObject:objectFromResponse]];
+            }
         }
     }
     return resultArray;

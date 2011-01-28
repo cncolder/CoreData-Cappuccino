@@ -7,6 +7,16 @@
 @import <Foundation/CPObject.j>
 
 
+/**
+    Parameters for a fetch request.
+
+    The request object is also used to transfer errors back to the requester
+    using the error property.
+
+    @property transparentFetch The result of the fetch is not stored in the context.
+                       This can be used to directly access the underlying
+                       storage without the overhead of storing the data in the managed context.
+*/
 @implementation CPFetchRequest : CPObject
 {
     // Entity
@@ -24,9 +34,10 @@
 
     // Managing How Results Are Returned
     CPArray _propertiesToFetch @accessors(property=propertiesToFetch);
+    BOOL _transparentFetch @accessors(property=transparentFetch);
 
     // response data set if an error occured during a fetch
-    CPError error @accessors;
+    CPError _error @accessors(property=error);
 }
 
 @end
