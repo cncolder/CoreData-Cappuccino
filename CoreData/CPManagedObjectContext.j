@@ -307,6 +307,8 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
     Uses saveAll if the store doesn't support selector
     saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:
 
+    TODO: better error handling
+
     @param error should be nil or a CPReference, will receive a CPError object on error.
 */
 - (BOOL)saveChanges:(CPError)error
@@ -320,6 +322,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
                           saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)]
        )
 	{
+        var saveError = [CPReference new];
 		var updatedObjects = [self updatedObjects];
 		var insertedObjects = [self insertedObjects];
 		var deletedObjects = [self deletedObjects];
@@ -329,7 +332,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
                                                 inserted:insertedObjects
                                                  deleted:deletedObjects
                                   inManagedObjectContext:self
-                                                   error:error];
+                                                   error:saveError];
         if (resultSet && [resultSet count] > 0)
         {
             var objectsEnum = [resultSet objectEnumerator];
@@ -344,9 +347,14 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
                 }
             }
         }
-        if (error == nil || [error isNil])
+        if ([saveError isNil])
         {
             result = [self reset];
+        }
+        else if (error && [error isNil])
+        {
+            // return the error to the caller
+            [error setObject:[saveError object]];
         }
         [[CPNotificationCenter defaultCenter]
             postNotificationName: CPManagedObjectContextDidSaveNotification
