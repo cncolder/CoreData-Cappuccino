@@ -322,31 +322,14 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
                           saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)]
        )
     {
-        var saveError = [CPReference new];
-        var updatedObjects = [self updatedObjects];
-        var insertedObjects = [self insertedObjects];
-        var deletedObjects = [self deletedObjects];
-        [self _validateUpdatedObject:updatedObjects
-                     insertedObjects:insertedObjects];
-        var resultSet = [[self store] saveObjectsUpdated:updatedObjects
-                                                inserted:insertedObjects
-                                                 deleted:deletedObjects
-                                  inManagedObjectContext:self
-                                                   error:saveError];
-        if (resultSet && [resultSet count] > 0)
-        {
-            var objectsEnum = [resultSet objectEnumerator];
-            var objectFromResponse;
-            while((objectFromResponse = [objectsEnum nextObject]))
-            {
-                var registeredObject = [self objectRegisteredForID:[objectFromResponse objectID]];
-                if (registeredObject != nil)
-                {
-                    [[registeredObject objectID] setGlobalID: [[objectFromResponse objectID] globalID]];
-                    [[registeredObject objectID] setIsTemporary: [[objectFromResponse objectID] isTemporary]];
-                }
-            }
-        }
+        var saveError = [CPReference new],
+            updatedObjects = [self updatedObjects],
+            insertedObjects = [self insertedObjects],
+            deletedObjects = [self deletedObjects];
+        var modifiedObjects = [self _saveObjectsUpdated:updatedObjects
+                                               inserted:insertedObjects
+                                                deleted:deletedObjects
+                                                  error:saveError];
         if ([saveError isNil])
         {
             result = [self reset];
@@ -373,7 +356,88 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 }
 
 
-- (void) _validateUpdatedObject:({CPSet}) updated insertedObjects:({CPSet}) inserted
+/*!
+    Save a single object from the context.
+
+    Whatever needs to be done with the object will be done. This can be
+    insert/update or delete.
+*/
+- (BOOL)saveObject:(CPManagedObject)aObject
+             error:(CPError)error
+{
+    var result = NO,
+        saveError = [CPReference new],
+        updatedObjects = [CPSet new],
+        insertedObjects = [CPSet new],
+        deletedObjects = [CPSet new],
+        obj;
+    obj = [self _insertedObjectWithID:[aObject objectID]];
+    if (obj)
+        [insertedObjects addObject:obj];
+    obj = [self _updatedObjectWithID:[aObject objectID]];
+    if (obj)
+        [updatedObjects addObject:obj];
+    obj = [self _deletedObjectWithID:[aObject objectID]];
+    if (obj)
+        [deletedObjects addObject:obj];
+    var modifiedObjects = [self _saveObjectsUpdated:updatedObjects
+                                           inserted:insertedObjects
+                                            deleted:deletedObjects
+                                              error:saveError];
+    if ([saveError isNil])
+    {
+        // update the state of the object in the context
+        [_updatedObjectIDs removeObject:[aObject objectID]];
+        [_insertedObjectIDs removeObject:[aObject objectID]];
+        [_deletedObjects removeObject:[aObject objectID]];
+        result = YES;
+    }
+    else if (error && [error isNil])
+    {
+        // return the error to the caller
+        [error setObject:[saveError object]];
+    }
+    return result;
+}
+
+
+-(CPSet)_saveObjectsUpdated:(CPSet)updatedObjects
+                   inserted:(CPSet)insertedObjects
+                    deleted:(CPSet)deletedObjects
+                      error:(CPError)error
+{
+    var saveError = [CPReference new];
+    [self _validateUpdatedObject:updatedObjects
+                 insertedObjects:insertedObjects];
+    var resultSet = [[self store] saveObjectsUpdated:updatedObjects
+                                            inserted:insertedObjects
+                                             deleted:deletedObjects
+                              inManagedObjectContext:self
+                                               error:saveError];
+    if (resultSet && [resultSet count] > 0)
+    {
+        var objectsEnum = [resultSet objectEnumerator];
+        var objectFromResponse;
+        while((objectFromResponse = [objectsEnum nextObject]))
+        {
+            var registeredObject = [self objectRegisteredForID:[objectFromResponse objectID]];
+            if (registeredObject != nil)
+            {
+                [[registeredObject objectID] setGlobalID: [[objectFromResponse objectID] globalID]];
+                [[registeredObject objectID] setIsTemporary: [[objectFromResponse objectID] isTemporary]];
+            }
+        }
+    }
+    if (![saveError isNil] && error && [error isNil])
+    {
+        // return the error to the caller
+        [error setObject:[saveError object]];
+    }
+    return resultSet;
+}
+
+- (void) _validateUpdatedObject:({CPSet})updated
+                insertedObjects:({CPSet})inserted
 {
     var unionSet = [[CPMutableSet alloc] init];
     [unionSet unionSet:updated];
@@ -728,7 +792,6 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 }
 
 
-
 /*
  *    All inserted object ids
  */
@@ -737,6 +800,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
     return _insertedObjectIDs;
 }
 
+
 /*
  *    All updated object ids
  */
@@ -744,7 +808,6 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 {
     return _updatedObjectIDs;
 }
-
 
 
 /*
