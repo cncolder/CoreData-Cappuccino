@@ -50,7 +50,7 @@ framework ("CoreData", function(task)
     task.setAuthor("Raphael Bartolome");
     task.setEmail("raphael.bartolome@gmail.com");
     task.setSummary("A CoreData implementation in Objective-J for Cappuccino");
-    task.setSources(new FileList("**/*.j").exclude('Build/**/*'));
+    task.setSources(new FileList("**/*.j").exclude('Build/**/*', 'Tests/**/*', 'documentation/**/*'));
     task.setResources(new FileList("Resources/**/*"));
     task.setFlattensSources(true);
     task.setInfoPlistPath("Info.plist");
