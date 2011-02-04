@@ -25,6 +25,7 @@
 @import "CPFetchRequestTemplates.j"
 
 @import "CPCoreDataCategories.j"
+@import "CPCoreDataJSONSchema.j"
 @import "NSCoreData.j"
 
 //Memory store
