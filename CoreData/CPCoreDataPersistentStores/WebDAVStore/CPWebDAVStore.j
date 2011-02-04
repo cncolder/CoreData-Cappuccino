@@ -5,8 +5,6 @@
 //
 
 @import <Foundation/Foundation.j>
-@import <CoreData/CoreData.j>
-@import <CoreData/CPWebDAVRequest.j>
 
 
 @implementation CPWebDAVStore : CPPersistentStore

@@ -5,7 +5,6 @@
 //
 
 @import <Foundation/Foundation.j>
-@import <CoreData/CoreData.j>
 
 CPHTML5StoreName = "CPHTML5StoreName";
 
