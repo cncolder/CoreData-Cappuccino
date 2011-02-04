@@ -69,9 +69,11 @@ TypeNames[CPDTransformableAttributeType] = "CPDTransformableAttributeType";
 - (CPString) typeName
 {
     if (_typeValue)
-    var name = TypeNames[_typeValue];
-    if (name != undefined)
-        return name;
+    {
+        var name = TypeNames[_typeValue];
+        if (name != undefined)
+            return name;
+    }
     return TypeNames[CPDUndefinedAttributeType];
 }
 
