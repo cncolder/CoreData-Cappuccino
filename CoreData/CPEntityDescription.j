@@ -226,7 +226,12 @@
         transformerName = [aProperty typeName];
         transformerName += "ValueTransformer";
     }
-    return [CPValueTransformer valueTransformerForName:transformerName];
+    var transformer = [CPValueTransformer valueTransformerForName:transformerName];
+    if (   type == CPDTransformableAttributeType
+        && !transformer
+       )
+       CPLog.error("Transformer %s not found!", transformerName);
+    return transformer
 }
 
 - (BOOL) isEqual:(CPEntityDescription)aEntity
