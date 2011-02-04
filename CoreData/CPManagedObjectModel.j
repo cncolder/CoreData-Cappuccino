@@ -125,19 +125,16 @@ var CPDCOREDATAMODEL_SUFFIX = "cpxcdatamodel";
 
 - (CPEntityDescription)entityWithName:(CPString)name
 {
-    var result;
     var entity;
     var e = [_entities objectEnumerator];
-
     while ((entity = [e nextObject]) != nil)
     {
         if([[entity name] isEqualToString:name])
         {
-            result = entity;
+            return entity;
         }
     }
-
-    return result;
+    return nil;
 }
 
 - (CPArray) entitiesByName
