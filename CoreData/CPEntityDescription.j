@@ -230,7 +230,7 @@
     if (   type == CPDTransformableAttributeType
         && !transformer
        )
-       CPLog.error("Transformer %s not found!", transformerName);
+       CPLog.warn("Transformer %s not found!", transformerName);
     return transformer
 }
 
