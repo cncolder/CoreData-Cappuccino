@@ -1,0 +1,33 @@
+{
+    "properties":{
+        "string1":{
+            "required":true,
+            "type":"string",
+            "default":"default for string1"
+        },
+        "enum1":{
+            "required":true,
+            "enum":[
+                "today",
+                "tomorrow"
+            ],
+            "default":"tomorrow"
+        },
+        "object1":{
+            "type":"object",
+            "default":{"attr1":"default for attr1"},
+            "properties":{
+                "attr1":{
+                    "type":"string"
+                    }
+            }
+        },
+        "array1":{
+            "type":"array",
+        }
+    },
+    "type":"object",
+    "description":"A test schema for the managed object tests",
+    "title":"Type1"
+}
+

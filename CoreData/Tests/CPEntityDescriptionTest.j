@@ -15,7 +15,7 @@
     var attr = [[CPAttributeDescription alloc] init];
     [attr setName:"transform"];
     [attr setTypeValue:CPDTransformableAttributeType];
-    [attr setValueTransformerName:"SWSTestValueTransformer"];
+    [attr setValueTransformerName:"TestValueTransformer"];
     [entity addProperty:attr];
 }
 
@@ -35,8 +35,8 @@
 
 -(void)testTransformationWithRegisteredTransformer
 {
-    [CPValueTransformer setValueTransformer:[[SWSTestValueTransformer alloc] init]
-                                    forName:@"SWSTestValueTransformer"];
+    [CPValueTransformer setValueTransformer:[[TestValueTransformer alloc] init]
+                                    forName:@"TestValueTransformer"];
     [self assert:"Transformed:value"
             equals:[entity transformValue:"value"
                               forProperty:"transform"]];
@@ -44,8 +44,8 @@
 
 -(void)testTransformationWithRegisteredTransformer
 {
-    [CPValueTransformer setValueTransformer:[[SWSTestValueTransformer alloc] init]
-                                    forName:@"SWSTestValueTransformer"];
+    [CPValueTransformer setValueTransformer:[[TestValueTransformer alloc] init]
+                                    forName:@"TestValueTransformer"];
     [self assert:"Reverse:value"
             equals:[entity reverseTransformValue:"value"
                                      forProperty:"transform"]];
@@ -54,7 +54,7 @@
 @end
 
 
-@implementation SWSTestValueTransformer : CPValueTransformer
+@implementation TestValueTransformer : CPValueTransformer
 
 +(BOOL)allowsReverseTransformation
 {
