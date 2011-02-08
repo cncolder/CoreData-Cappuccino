@@ -30,15 +30,6 @@ FILE = require("file");
           equals:[obj valueForKey:"string1"]]
 }
 
--(void)testCreateStringAttributeWithFormat
-{
-    var entity = [model entityWithName:"Type1"];
-    var obj = [entity createObject];
-    [obj setValue:"v1" forKey:"created"];
-    [self assert:""
-          equals:[obj valueForKey:"created"]]
-}
-
 -(void)testCreateEnumAttribute
 {
     var entity = [model entityWithName:"Type1"];
@@ -106,7 +97,7 @@ FILE = require("file");
     var obj = [entity createObject];
     var JSON = {"string1":"From JSON"}
     [obj setJSONObject:JSON];
-    [self assert:"{\"string1\":\"From JSON\",\"enum1\":null,\"object1\":null,\"array1\":null}"
+    [self assert:"{\"string1\":\"From JSON\",\"created\":null,\"enum1\":null,\"object1\":null,\"array1\":null}"
           equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 
@@ -118,7 +109,7 @@ FILE = require("file");
                 "object1":{"attr1":"attr1 from JSON"}
                }
     [obj setJSONObject:JSON];
-    [self assert:"{\"string1\":\"From JSON\",\"object1\":{\"attr1\":\"attr1 from JSON\"},\"enum1\":null,\"array1\":null}"
+    [self assert:"{\"string1\":\"From JSON\",\"object1\":{\"attr1\":\"attr1 from JSON\"},\"created\":null,\"enum1\":null,\"array1\":null}"
           equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 
