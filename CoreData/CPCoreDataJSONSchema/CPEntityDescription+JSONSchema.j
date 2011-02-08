@@ -5,8 +5,10 @@
 @implementation CPEntityDescription (CPEntityDescriptionJSONSchema)
 
 +(id)entityWithJSONSchema:(id)schema
+                  forName:(CPString)aName
 {
-    return [[CPJSONSchemaEntityDescription alloc] initWithJSONSchema:schema];
+    return [[CPJSONSchemaEntityDescription alloc] initWithJSONSchema:schema
+                                                             forName:aName];
 }
 
 @end
@@ -31,13 +33,14 @@
 }
 
 -(id)initWithJSONSchema:(id)schema
+                forName:(CPString)aName
 {
     self = [self init];
     if (self)
     {
         //TODO: validate the schema against the JSON schema spec
         // read the schema
-        [self setName:schema.title];
+        [self setName:aName];
         var properties = schema.properties;
         for (var name in properties)
         {
@@ -82,8 +85,8 @@
 -(CPEntityDescription)addSubentityWithSchema:(id)schema
                                 forAttribute:(CPString)aName
 {
-    var entity = [CPEntityDescription entityWithJSONSchema:schema];
-    [entity setName:aName];
+    var entity = [CPEntityDescription entityWithJSONSchema:schema
+                                                   forName:aName];
     [entity setParentEntity:self];
     [subEntities setObject:entity forKey:aName];
     return entity;

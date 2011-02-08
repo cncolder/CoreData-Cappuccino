@@ -4,39 +4,39 @@
 */
 @implementation CPManagedObjectModel (CPManagedObjectModelJSONSchema)
 
-+(id)modelWithJSONSchemas:(CPArray)schemas
-{
-    return [[self alloc] initWithJSONSchemas:schemas];
-}
-
 /*!
     Load the schemas from URLs.
 */
-+(id)modelWithJSONSchemaURLs:(CPArray)URLs
++(id)modelWithJSONSchemaURLs:(CPDictionary)URLs
 {
-    var iter = [URLs objectEnumerator],
-        schemas = [CPMutableArray array];
-    while (URL = [iter nextObject])
+    var iter = [URLs keyEnumerator],
+        schemas = [[CPMutableDictionary alloc] init];
+    var name;
+    while (name = [iter nextObject])
     {
+        var URL = [URLs objectForKey:name];
         var request = [[CPURLRequest alloc] initWithURL:[CPURL URLWithString:URL]];
         [request setHTTPMethod:@"GET"];
         [request setValue:@"text/plain" forHTTPHeaderField:@"Content-Type"];
         var data = [CPURLConnection sendSynchronousRequest:request returningResponse:nil];
-        [schemas addObject:[data rawString]];
+        [schemas setObject:[data rawString] forKey:name];
     }
     return [[self alloc] initWithJSONSchemas:schemas];
 }
 
--(id)initWithJSONSchemas:(CPArray)schemas
+-(id)initWithJSONSchemas:(CPDictionary)schemas
 {
     self = [self init];
     if (self)
     {
-        var iter = [schemas objectEnumerator],
+        var iter = [schemas keyEnumerator],
             schema;
-        while (schema=[iter nextObject])
+        var name;
+        while (name = [iter nextObject])
         {
-            var entity = [CPEntityDescription entityWithJSONSchema:[schema objectFromJSON]];
+            var schema = [schemas objectForKey:name];
+            var entity = [CPEntityDescription entityWithJSONSchema:[schema objectFromJSON]
+                                                           forName:name];
             [self addEntity:entity];
         }
     }

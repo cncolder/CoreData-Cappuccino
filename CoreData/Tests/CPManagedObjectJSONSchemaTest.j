@@ -14,8 +14,8 @@ FILE = require("file");
 -(void)setUp
 {
     var urlBase = FILE.join(FILE.dirname(module.path), "data");
-    var schemas = [CPMutableArray array];
-    [schemas addObject:FILE.join(urlBase, "mo_schema1.json")];
+    var schemas = [[CPMutableDictionary alloc] init];
+    [schemas setObject:FILE.join(urlBase, "mo_schema1.json") forKey:"Type1"];
     model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
 }
 
@@ -50,6 +50,8 @@ FILE = require("file");
                 message:"Couldn't get value for \"object1\""];
     [self assert:"default for attr1"
           equals:[obj1 valueForKey:"attr1"]];
+    [self assert:"default for attr1"
+          equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
 -(void)testArrayAttribute
