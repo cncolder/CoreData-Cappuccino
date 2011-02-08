@@ -46,6 +46,26 @@
     return self;
 }
 
+/*!
+    Reset all values to the defaults by converting the default from JSON.
+*/
+- (void)_resetObjectDataForProperties
+{
+	_data = [[CPMutableDictionary alloc] init];
+	var e = [[_entity properties] objectEnumerator];
+	var property;
+	while ((property = [e nextObject]) != nil)
+    {
+		var propName = [property name];
+        var value = [property defaultValue];
+        if (value != nil)
+        {
+            value = [CPManagedJSONObject _convertWithJSONObject:value];
+        }
+		[_data setObject:value forKey:propName];
+	}
+}
+
 /**
     Replace the object data with data from a JSObject.
 
@@ -54,23 +74,9 @@
         because it is not possible to have property names starting with "_"
         in the entity description created using XCode.
 */
--(void)setJSONObject:(id)jsonObject
+-(void)setJSONObject:(id)JSONObject
 {
-    var asDictionary = [CPDictionary dictionaryWithJSObject:jsonObject];
-    var keys = [[asDictionary allKeys] objectEnumerator];
-    var key;
-    while ((key = [keys nextObject]) != nil)
-    {
-        if ([key characterAtIndex:0] == "_")
-        {
-            var newKey = [CPString stringWithFormat:@"ESCAPED%s", key];
-            [asDictionary setObject:[asDictionary valueForKey:key]
-                             forKey:newKey];
-            [asDictionary removeObjectForKey:key];
-        }
-    }
-    // Use the data untransformed.
-    [self _setData:asDictionary];
+    [self _setData:[[self class] _convertWithJSONObject:JSONObject]];
 }
 
 /**
@@ -78,27 +84,7 @@
 */
 -(id)JSONObject
 {
-    var result = {};
-    var asDictionary = [CPDictionary dictionaryWithDictionary:[self data]];
-    var keys = [[asDictionary allKeys] objectEnumerator];
-    var key;
-    while ((key = [keys nextObject]) != nil)
-    {
-        var targetKey = key;
-        if ([key rangeOfString:"ESCAPED"].location == 0)
-        {
-            var targetKey = [key substringFromIndex:7];
-        }
-        var value = [asDictionary valueForKey:key];
-        if (   value != nil
-            && value["isa"] != undefined
-            && [value isKindOfClass:[CPNull class]]
-           )
-            result[targetKey] = nil;
-        else
-            result[targetKey] = [asDictionary valueForKey:key];
-    }
-    return result;
+    return [CPManagedJSONObject _JSONObjectWithObjjObject:[self data]];
 }
 
 -(void)setRawData:(CPDictionary)aDictionary
@@ -128,6 +114,80 @@
         [existing setObject:[asDictionary valueForKey:key]
                      forKey:newKey];
     }
+}
+
+/*!
+    Provide a converted object from a JSON-Object.
+
+    Properties are recursively replaced with CPDictionaries.
+
+    Special transformations:
+        Properties with names starting with "_" are renamed to "ESCAPED_..."
+        because it is not possible to have property names starting with "_"
+        in the entity description created using XCode.
+*/
++(id)_convertWithJSONObject:(id)JSONObject
+{
+    if (JSONObject instanceof Array)
+    {
+        //TODO: convert array content
+        return JSONObject;
+    }
+    if ((typeof JSONObject) == typeof {})
+    {
+        // provide as a CPDictionary
+        var asDictionary = [CPDictionary dictionaryWithJSObject:JSONObject];
+        var keys = [[asDictionary allKeys] objectEnumerator];
+        var key;
+        while ((key = [keys nextObject]) != nil)
+        {
+            var value = [asDictionary valueForKey:key];
+            if ([key characterAtIndex:0] == "_")
+            {
+                var newKey = [CPString stringWithFormat:@"ESCAPED%s", key];
+                [asDictionary setObject:value
+                                 forKey:newKey];
+                [asDictionary removeObjectForKey:key];
+                key = newKey;
+            }
+            var old = value;
+            value = [self _convertWithJSONObject:value];
+            if (value !== old)
+            {
+                [asDictionary setObject:value
+                                 forKey:key];
+            }
+        }
+        return asDictionary;
+    }
+    // no conversion needed
+    return JSONObject;
+}
+
++(id)_JSONObjectWithObjjObject:(id)objjObject
+{
+    if ([objjObject isKindOfClass:[CPArray class]])
+    {
+        return objjObject;
+    }
+    if ([objjObject isKindOfClass:[CPDictionary class]])
+    {
+        var result = {},
+            keys = [[objjObject allKeys] objectEnumerator],
+            key;
+        while ((key = [keys nextObject]) != nil)
+        {
+            var targetKey = key;
+            if ([key rangeOfString:"ESCAPED"].location == 0)
+            {
+                targetKey = [key substringFromIndex:7];
+            }
+            var value = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject valueForKey:key]];
+            result[targetKey] = value;
+        }
+        return result
+    }
+    return objjObject;
 }
 
 @end

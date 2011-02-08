@@ -67,7 +67,15 @@
             };
         }
         type = type !== undefined && type || "object";
-        [self setTypeValue:[[self class] _typeWithJSONSchemaTypeName:type]];
+        var format = aPropertyObject["format"];
+        if (format !== undefined && format)
+        {
+            [self setTypeValue:CPDTransformableAttributeType];
+        }
+        else
+        {
+            [self setTypeValue:[[self class] _typeWithJSONSchemaTypeName:type]];
+        }
         [self setClassValue:nil];
         [self setIsOptional:aPropertyObject.required ? NO : YES];
         [self setDefaultValue:aPropertyObject["default"] || nil];
@@ -80,8 +88,8 @@
             var sub = [aEntity addSubentityWithSchema:aPropertyObject
                                          forAttribute:aName];
             // and the transformer for the new entity
-            var fullName = [CPCoreDataJSONSchemaObjectTransformer registerWithEntity:sub];
-            [self setValueTransformerName:fullName];
+            //var fullName = [CPCoreDataJSONSchemaObjectTransformer registerWithEntity:sub];
+            //[self setValueTransformerName:fullName];
         }
     }
     return self;
@@ -101,79 +109,6 @@
 }
 
 @end
-
-
-/*!
-    A transformer for the JSON schema type object.
-
-    On read it returns a managed object with a entity description based on the
-    properties defined in the schema.
-*/
-@implementation CPCoreDataJSONSchemaObjectTransformer : CPValueTransformer
-{
-    CPEntityDescription _entity @accessors(property=entity);
-}
-
-+ (void)initialize
-{
-    if (self !== [CPCoreDataJSONSchemaObjectTransformer class])
-        return;
-
-    var transformer = [[CPCoreDataJSONSchemaObjectTransformer alloc] init];
-    [CPValueTransformer setValueTransformer:transformer
-                                    forName:@"CoreDataJSONSchema_object"];
-}
-
-+(CPString)registerWithEntity:(CPEntityDescription)aEntity
-{
-    var names = [CPMutableArray array];
-    var e = aEntity;
-    while (e)
-    {
-        [names addObject:[e name]];
-        e = [e parentEntity];
-    }
-    names.reverse();
-    var baseName = names.join('_');
-    var name = [CPString stringWithFormat:"CoreDataJSONSchema_%s", baseName];
-    var transformer = [CPValueTransformer valueTransformerForName:name];
-    if (!transformer)
-    {
-        transformer = [[CPCoreDataJSONSchemaObjectTransformer alloc] init];
-    }
-    [transformer setEntity:aEntity];
-    [CPValueTransformer setValueTransformer:transformer
-                                    forName:name];
-    return name;
-}
-
-+(BOOL)allowsReverseTransformation
-{
-    return YES;
-}
-
-- (id)reverseTransformedValue:(id)aValue
-{
-    return [aValue JSONObject];
-}
-
-- (id)transformedValue:(id)aValue
-{
-    if (aValue && aValue !== undefined && aValue.isa !== undefined)
-    {
-        return aValue;
-    }
-    var result = [_entity createObject];
-    [result setJSONObject:aValue];
-    return result
-}
-
-@end
-
-// "initialize" of a class will be called when the class is used the first time.
-// Because the class is only be used by searching the registrations
-// "initialize" will never be call.
-[CPCoreDataJSONSchemaObjectTransformer class];
 
 
 var JSONSchemaTypeToCoreDataType = {}

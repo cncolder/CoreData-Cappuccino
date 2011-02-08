@@ -5,6 +5,11 @@
             "type":"string",
             "default":"default for string1"
         },
+        "created":{
+          "type":"string",
+          "description":"The date the object was created.",
+          "format":"sl:rfc3339"
+        },
         "enum1":{
             "required":true,
             "enum":[

@@ -31,6 +31,11 @@ FILE = require("file");
                 message:"Entity \"Application\" not found in model!"];
     [self assert:"kind, id, name, created, subschema, periods"
           equals:[entity propertyNames].join(", ")];
+    var attr;
+    var attrs = [entity attributesByName];
+    attr = [attrs valueForKey:"created"];
+    [self assert:"sl:rfc3339"
+          equals:[attr valueTransformerName]];
     var entity = [model entityWithName:"Contract"];
     [self assertNotNull:entity
                 message:"Entity \"Contract\" not found in model!"];
@@ -55,7 +60,7 @@ FILE = require("file");
     var attr;
     var attrs = [entity attributesByName];
     attr = [attrs valueForKey:"subschema"];
-    [self assert:"CoreDataJSONSchema_Application_subschema"
+    [self assert:"CoreDataJSONSchema_object"
           equals:[attr valueTransformerName]];
 }
 

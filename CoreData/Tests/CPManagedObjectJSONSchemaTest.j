@@ -19,7 +19,7 @@ FILE = require("file");
     model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
 }
 
--(void)testStringAttribute
+-(void)testCreateStringAttribute
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
@@ -30,7 +30,16 @@ FILE = require("file");
           equals:[obj valueForKey:"string1"]]
 }
 
--(void)testEnumAttribute
+-(void)testCreateStringAttributeWithFormat
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    [obj setValue:"v1" forKey:"created"];
+    [self assert:""
+          equals:[obj valueForKey:"created"]]
+}
+
+-(void)testCreateEnumAttribute
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
@@ -41,7 +50,7 @@ FILE = require("file");
           equals:[obj valueForKey:"enum1"]]
 }
 
--(void)testObjectAttribute
+-(void)testCreateObjectAttribute
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
@@ -54,7 +63,7 @@ FILE = require("file");
           equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
--(void)testArrayAttribute
+-(void)testCreateArrayAttribute
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
@@ -64,6 +73,53 @@ FILE = require("file");
     [self assertTrue:[[obj valueForKey:"array1"] isKindOfClass:[CPArray class]]];
     [self assert:"1, 2"
           equals:[obj valueForKey:"array1"].join(', ')]
+}
+
+-(void)testSetJSONDataString
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"string1":"From JSON"}
+    [obj setJSONObject:JSON];
+    [self assert:"From JSON"
+          equals:[obj valueForKey:"string1"]]
+}
+
+-(void)testSetJSONDataSubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"string1":"From JSON",
+                "object1":{"attr1":"attr1 from JSON"}
+               }
+    [obj setJSONObject:JSON];
+    [self assert:[CPDictionary class]
+          equals:[[obj valueForKey:"object1"] class]
+         message:"Wrong class from subobject!"];
+    [self assert:"attr1 from JSON"
+          equals:[obj valueForKeyPath:"object1.attr1"]];
+}
+
+-(void)testGetJSONDataString
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"string1":"From JSON"}
+    [obj setJSONObject:JSON];
+    [self assert:"{\"string1\":\"From JSON\",\"enum1\":null,\"object1\":null,\"array1\":null}"
+          equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
+}
+
+-(void)testgetJSONDataSubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"string1":"From JSON",
+                "object1":{"attr1":"attr1 from JSON"}
+               }
+    [obj setJSONObject:JSON];
+    [self assert:"{\"string1\":\"From JSON\",\"object1\":{\"attr1\":\"attr1 from JSON\"},\"enum1\":null,\"array1\":null}"
+          equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 
 @end

@@ -810,9 +810,9 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
     {
 		var propName = [property name];
 		//@TODO nil is no longer supported as object
-        //TODO: set the default value from the property
-        var value = [[self entity] transformValue:[property defaultValue]
-                                      forProperty:propName];
+        var value = [property defaultValue];
+        //value = [[self entity] transformValue:value
+        //                          forProperty:propName];
 		[_data setObject:value forKey:propName];
 	}
 }
