@@ -159,7 +159,7 @@
 
 - (id)transformedValue:(id)aValue
 {
-    if (aValue.isa !== undefined)
+    if (aValue && aValue !== undefined && aValue.isa !== undefined)
     {
         return aValue;
     }
