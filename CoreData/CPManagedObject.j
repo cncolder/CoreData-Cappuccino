@@ -649,65 +649,54 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (BOOL)_validateForChanges
 {
-	var result = YES;
+    var result = YES;
 
-	var mandatoryAttributes = [_entity mandatoryAttributes];
-	var mandatoryRelationships = [_entity mandatoryRelationships];
-	var relationships = [_entity relationshipsByName];
+    var mandatoryAttributes = [_entity mandatoryAttributes];
+    var mandatoryRelationships = [_entity mandatoryRelationships];
+    var relationships = [_entity relationshipsByName];
 
-	var i = 0;
-	for(i=0;i<[[_data allKeys] count];i++)
-	{
-		var property = [[_data allKeys] objectAtIndex:i];
+    var i = 0;
+    for(i=0;i<[[_data allKeys] count];i++)
+    {
+        var property = [[_data allKeys] objectAtIndex:i];
+        if([mandatoryAttributes containsObject:property])
+        {
+            if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
+            {
+                CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
+                return NO;
+            }
+        }
 
-//		CPLog.debug("Validate property: " + property);
-		if([mandatoryAttributes containsObject:property])
-		{
-			if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
-			{
-//				CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
-				return NO;
-			}
-		}
-		else
-		{
-//			CPLog.trace("property: " + property + " is not a not null property");
-		}
+        if([relationships objectForKey:property])
+        {
+            if([mandatoryRelationships containsObject:property])
+            {
+                if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
+                {
+                    CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
+                    return NO;
+                }
+            }
 
-		if([relationships objectForKey:property])
-		{
-//			CPLog.trace("relation: " + property + " is a relation");
-			if([mandatoryRelationships containsObject:property])
-			{
-				if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
-				{
-//					CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
-					return NO;
-				}
-			}
+            var aRelationship = [relationships objectForKey:property];
+            if([aRelationship isToMany])
+            {
+                var valueE = [[self valueForKey:property] objectEnumerator];
+                var aObj;
 
-			var aRelationship = [relationships objectForKey:property];
-			if([aRelationship isToMany])
-			{
-				var valueE = [[self valueForKey:property] objectEnumerator];
-				var aObj;
-
-				while((aObj = [valueE nextObject]))
-				{
-					if(![aObj _validateForChanges])
-					{
-//						CPLog.debug(@"Object is not complete because object with " + [[aObj objectID] localID] + " in toMany Relation '" + property + "' is not valid");
-						return NO;
-					}
-				}
-			}
-		}
-		else
-		{
-//			CPLog.debug("relation: " + property + " is not a relation");
-		}
-	}
-	return result;
+                while((aObj = [valueE nextObject]))
+                {
+                    if(![aObj _validateForChanges])
+                    {
+                        CPLog.debug(@"Object is not complete because object with " + [[aObj objectID] localID] + " in toMany Relation '" + property + "' is not valid");
+                        return NO;
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }
 
 - (BOOL)_containsObject:(CPManagedObjectID) aObjectID
