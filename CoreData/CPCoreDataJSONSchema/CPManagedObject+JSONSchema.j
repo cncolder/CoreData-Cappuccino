@@ -56,11 +56,6 @@
 
 /**
     Replace the object data with data from a JSObject.
-
-    Special transformations:
-        Properties with names starting with "_" are renamed to "ESCAPED_..."
-        because it is not possible to have property names starting with "_"
-        in the entity description created using XCode.
 */
 -(void)setJSONObject:(id)JSONObject
 {
@@ -94,13 +89,8 @@
     var key;
     while ((key = [keys nextObject]) != nil)
     {
-        var newKey = key;
-        if ([key characterAtIndex:0] == "_")
-        {
-            newKey = [CPString stringWithFormat:@"ESCAPED%s", key];
-        }
         [existing setObject:[asDictionary valueForKey:key]
-                     forKey:newKey];
+                     forKey:key];
     }
 }
 
@@ -108,11 +98,6 @@
     Provide a objective-j object from a JSON-Object.
 
     Properties are recursively replaced with CPDictionaries.
-
-    Special transformations:
-        Properties with names starting with "_" are renamed to "ESCAPED_..."
-        because it is not possible to have property names starting with "_"
-        in the entity description created using XCode.
 */
 +(id)_objjObjectWithJSONObject:(id)JSONObject
 {
@@ -139,17 +124,8 @@
         var key;
         while ((key = [keys nextObject]) != nil)
         {
-            var value = [asDictionary valueForKey:key];
-            if ([key characterAtIndex:0] == "_")
-            {
-                var newKey = [CPString stringWithFormat:@"ESCAPED%s", key];
-                [asDictionary setObject:value
-                                 forKey:newKey];
-                [asDictionary removeObjectForKey:key];
-                key = newKey;
-            }
-            var old = value;
-            value = [self _objjObjectWithJSONObject:value];
+            var old = [asDictionary valueForKey:key];
+            var value = [self _objjObjectWithJSONObject:old];
             if (value !== old)
             {
                 [asDictionary setObject:value
@@ -186,13 +162,7 @@
             key;
         while ((key = [keys nextObject]) != nil)
         {
-            var targetKey = key;
-            if ([key rangeOfString:"ESCAPED"].location == 0)
-            {
-                targetKey = [key substringFromIndex:7];
-            }
-            var value = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject valueForKey:key]];
-            result[targetKey] = value;
+            result[key] = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject valueForKey:key]];
         }
         return result
     }
