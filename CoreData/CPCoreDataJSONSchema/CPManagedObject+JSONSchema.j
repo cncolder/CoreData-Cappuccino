@@ -166,13 +166,13 @@
 {
     if ([objjObject isKindOfClass:[CPArray class]])
     {
-        for (var i=0; i < JSONObject.length; i++)
+        for (var i=0; i < objjObject.length; i++)
         {
-            var old = [JSONObject objectAtIndex:i];
+            var old = [objjObject objectAtIndex:i];
             var value = [self _JSONObjectWithObjjObject:old];
             if (value !== old)
             {
-                [JSONObject replaceObjectAtIndex:i
+                [objjObject replaceObjectAtIndex:i
                                       withObject:value];
             }
 
