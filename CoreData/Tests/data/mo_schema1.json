@@ -20,15 +20,20 @@
         },
         "object1":{
             "type":"object",
-            "default":{"attr1":"default for attr1"},
+            "required":true,
             "properties":{
                 "attr1":{
-                    "type":"string"
+                    "type":"string",
+                    "default":"default for attr1"
                     }
             }
         },
         "array1":{
             "type":"array",
+            "required":true,
+            "items":{
+                "type":"string"
+            }
         }
     },
     "type":"object",

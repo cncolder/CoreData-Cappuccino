@@ -56,7 +56,10 @@ FILE = require("file");
                 message:"Entity \"Application\" not found in model!"];
     var sub = [entity subentityWithName:"subschema"];
     [self assertNotNull:sub
-                message:"Subentity not found!"];
+                message:"Subentity \"subschema\" not found!"];
+    var sub = [entity subentityWithName:"periods"];
+    [self assertNotNull:sub
+                message:"Subentity for periods array not found!"];
     var attr;
     var attrs = [entity attributesByName];
     attr = [attrs valueForKey:"subschema"];

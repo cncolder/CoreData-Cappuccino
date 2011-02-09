@@ -58,8 +58,8 @@ FILE = require("file");
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    [self assert:null
-          equals:[obj valueForKey:"array1"]]
+    [self assertTrue:[[obj valueForKey:"array1"] isKindOfClass:[CPArray class]]
+             message:"Not an array!"]
     [obj setValue:[CPArray arrayWithObjects:"1", "2"] forKey:"array1"];
     [self assertTrue:[[obj valueForKey:"array1"] isKindOfClass:[CPArray class]]];
     [self assert:"1, 2"

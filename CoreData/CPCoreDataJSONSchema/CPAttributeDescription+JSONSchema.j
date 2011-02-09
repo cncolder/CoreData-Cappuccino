@@ -87,9 +87,13 @@
             // create a subschema
             var sub = [aEntity addSubentityWithSchema:aPropertyObject
                                          forAttribute:aName];
-            // and the transformer for the new entity
-            //var fullName = [CPCoreDataJSONSchemaObjectTransformer registerWithEntity:sub];
-            //[self setValueTransformerName:fullName];
+        }
+        if (   type == "array"
+            && aPropertyObject.items !== undefined
+           )
+        {
+            var sub = [aEntity addSubentityWithSchema:aPropertyObject.items
+                                         forAttribute:aName];
         }
     }
     return self;

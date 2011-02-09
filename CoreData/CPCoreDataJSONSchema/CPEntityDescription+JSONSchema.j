@@ -56,11 +56,11 @@
 {
 	var newObject;
 	var objectClassWithName = CPClassFromString(_name);
-	var objectClassWithExternaName = CPClassFromString(_externalName);
+	var objectClassWithExternalName = CPClassFromString(_externalName);
 
-	if(objectClassWithExternaName != nil)
+	if(objectClassWithExternalName != nil)
 	{
-		newObject = [[objectClassWithExternaName alloc] initWithEntity:self]
+		newObject = [[objectClassWithExternalName alloc] initWithEntity:self]
 	}
 	else if(objectClassWithName != nil)
 	{
@@ -95,6 +95,55 @@
 -(CPEntityDescription)subentityWithName:(CPString)name
 {
     return [subEntities objectForKey:name];
+}
+
+/*!
+    Create a CPDictionary from a subentity.
+*/
+-(id)createAttributeWithSubentityPath:(CPString)aNamePath
+{
+    var result = nil;
+    var firstDotIndex = aNamePath.indexOf(".");
+    if (firstDotIndex === CPNotFound)
+    {
+        return [[self subentityWithName:aNamePath] initialData];
+    }
+    var firstKeyComponent = aNamePath.substring(0, firstDotIndex),
+        remainingKeyPath = aNamePath.substring(firstDotIndex + 1),
+        entity = [self valueForKey:firstKeyComponent];
+    return [value valueForKeyPath:remainingKeyPath];
+}
+
+/*!
+    Provide a dictionary initialized with the default values.
+*/
+-(CPDictionary)initialData
+{
+    var result = [[CPMutableDictionary alloc] init];
+    var e = [[self properties] objectEnumerator];
+    var property;
+    while ((property = [e nextObject]) != nil)
+    {
+        var propName = [property name];
+        var value = [property defaultValue];
+        if (value != nil)
+        {
+            value = [CPManagedJSONObject _objjObjectWithJSONObject:value];
+        }
+        else if (![property isOptional])
+        {
+            if ([property rawJSON].type == "array")
+            {
+                value = [];
+            }
+            else
+            {
+                value = [self createAttributeWithSubentityPath:propName];
+            }
+        }
+        [result setObject:value forKey:propName];
+    }
+    return result;
 }
 
 @end

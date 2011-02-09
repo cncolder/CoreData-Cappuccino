@@ -51,19 +51,7 @@
 */
 - (void)_resetObjectDataForProperties
 {
-	_data = [[CPMutableDictionary alloc] init];
-	var e = [[_entity properties] objectEnumerator];
-	var property;
-	while ((property = [e nextObject]) != nil)
-    {
-		var propName = [property name];
-        var value = [property defaultValue];
-        if (value != nil)
-        {
-            value = [CPManagedJSONObject _convertWithJSONObject:value];
-        }
-		[_data setObject:value forKey:propName];
-	}
+	_data = [_entity initialData];
 }
 
 /**
@@ -76,7 +64,7 @@
 */
 -(void)setJSONObject:(id)JSONObject
 {
-    [self _setData:[[self class] _convertWithJSONObject:JSONObject]];
+    [self _setData:[[self class] _objjObjectWithJSONObject:JSONObject]];
 }
 
 /**
@@ -117,7 +105,7 @@
 }
 
 /*!
-    Provide a converted object from a JSON-Object.
+    Provide a objective-j object from a JSON-Object.
 
     Properties are recursively replaced with CPDictionaries.
 
@@ -126,11 +114,21 @@
         because it is not possible to have property names starting with "_"
         in the entity description created using XCode.
 */
-+(id)_convertWithJSONObject:(id)JSONObject
++(id)_objjObjectWithJSONObject:(id)JSONObject
 {
     if (JSONObject instanceof Array)
     {
-        //TODO: convert array content
+        for (var i=0; i < JSONObject.length; i++)
+        {
+            var old = [JSONObject objectAtIndex:i];
+            var value = [self _objjObjectWithJSONObject:old];
+            if (value !== old)
+            {
+                [JSONObject replaceObjectAtIndex:i
+                                      withObject:value];
+            }
+
+        }
         return JSONObject;
     }
     if ((typeof JSONObject) == typeof {})
@@ -151,7 +149,7 @@
                 key = newKey;
             }
             var old = value;
-            value = [self _convertWithJSONObject:value];
+            value = [self _objjObjectWithJSONObject:value];
             if (value !== old)
             {
                 [asDictionary setObject:value
@@ -168,6 +166,17 @@
 {
     if ([objjObject isKindOfClass:[CPArray class]])
     {
+        for (var i=0; i < JSONObject.length; i++)
+        {
+            var old = [JSONObject objectAtIndex:i];
+            var value = [self _JSONObjectWithObjjObject:old];
+            if (value !== old)
+            {
+                [JSONObject replaceObjectAtIndex:i
+                                      withObject:value];
+            }
+
+        }
         return objjObject;
     }
     if ([objjObject isKindOfClass:[CPDictionary class]])
