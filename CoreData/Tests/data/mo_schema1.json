@@ -30,12 +30,24 @@
                     "type":"string",
                     "default":"untransformed",
                     "format":"TestTransformer"
-                    }
+                    },
+                "missing":{
+                    "type":"string"
+                }
             }
         },
         "array1":{
             "type":"array",
             "required":true,
+            "items":{
+                "type":"string"
+            }
+        },
+        "missing":{
+            "type":"string"
+        },
+        "missingArray":{
+            "type":"array",
             "items":{
                 "type":"string"
             }

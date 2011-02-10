@@ -91,11 +91,25 @@ FILE = require("file");
           equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
+-(void)testSetJSONDataMissingProperties
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {};
+    [obj setJSONObject:JSON];
+    [self assertNull:[obj valueForKey:"missing"]
+             message:"Expected null for missing string!"];
+    [self assertNull:[obj valueForKey:"missingArray"]
+             message:"Expected null for missing array!"];
+    [self assertNull:[obj valueForKeyPath:"array1.missing"]
+             message:"Expected null for missing string in subobject!"];
+}
+
 -(void)testGetJSONDataSubobject
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    [self assert:"{\"string1\":\"default for string1\",\"created\":null,\"enum1\":\"tomorrow\",\"object1\":{\"attr1\":\"default for attr1\",\"transform\":\"untransformed\"},\"array1\":[]}"
+    [self assert:"{\"string1\":\"default for string1\",\"created\":null,\"enum1\":\"tomorrow\",\"object1\":{\"attr1\":\"default for attr1\",\"transform\":\"untransformed\",\"missing\":null},\"array1\":[],\"missing\":null,\"missingArray\":null}"
           equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 
