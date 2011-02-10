@@ -109,7 +109,7 @@ FILE = require("file");
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    [self assert:"{\"string1\":\"default for string1\",\"created\":null,\"enum1\":\"tomorrow\",\"object1\":{\"attr1\":\"default for attr1\",\"transform\":\"untransformed\",\"missing\":null},\"array1\":[],\"missing\":null,\"missingArray\":null}"
+    [self assert:"{\"string1\":\"default for string1\",\"enum1\":\"tomorrow\",\"object1\":{\"attr1\":\"default for attr1\",\"transform\":\"untransformed\"},\"array1\":[]}"
           equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 

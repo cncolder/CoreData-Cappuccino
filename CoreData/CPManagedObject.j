@@ -649,30 +649,32 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (BOOL)_validateForChanges
 {
-    var result = YES;
-
-    var mandatoryAttributes = [_entity mandatoryAttributes];
-    var mandatoryRelationships = [_entity mandatoryRelationships];
-    var relationships = [_entity relationshipsByName];
-
-    var i = 0;
-    for(i=0;i<[[_data allKeys] count];i++)
+    var result = YES,
+        allKeys = [_data allKeys],
+        relationships = [_entity relationshipsByName];
+    for(var i=0;i<[allKeys count];i++)
     {
-        var property = [[_data allKeys] objectAtIndex:i];
-        if([mandatoryAttributes containsObject:property])
+        var property = [allKeys objectAtIndex:i];
+        if ([_entity isMandatoryAttributeName:property])
         {
-            if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
+            if (   [_data objectForKey:property] == nil
+                && ![_changedData objectForKey:property]
+               )
             {
-                CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
+                CPLog.warn(@"Object '%s' is not complete because property '%s' is missing",
+                            [[self entity] name],
+                            property
+                          );
                 return NO;
             }
         }
-
-        if([relationships objectForKey:property])
+        else if ([_entity isRelationshipName:property])
         {
-            if([mandatoryRelationships containsObject:property])
+            if ([_entity isMandatoryRelationship:property])
             {
-                if([_data objectForKey:property] == nil && ![_changedData objectForKey:property])
+                if(   [_data objectForKey:property] == nil
+                   && ![_changedData objectForKey:property]
+                  )
                 {
                     CPLog.debug(@"Object is not complete because property '" + property + "' is missing");
                     return NO;
@@ -701,11 +703,12 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (BOOL)_containsObject:(CPManagedObjectID) aObjectID
 {
-	var result = NO;
-	var i = 0;
-	for(i=0;i<[[_data allKeys] count];i++)
+	var result = NO,
+        allKeys = [_data allKeys],
+	    i = 0;
+	for(i=0;i<[allKeys count];i++)
 	{
-		var property = [[_data allKeys] objectAtIndex:i];
+		var property = [allKeys objectAtIndex:i];
 		var valueForProperty = [_data objectForKey:property];
 		if([self isPropertyOfTypeToOneRelationship:property])
 		{

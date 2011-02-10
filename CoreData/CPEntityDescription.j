@@ -16,6 +16,11 @@
 	CPString _name @accessors(property=name);
 	CPString _externalName @accessors(property=externalName);
 	CPMutableSet _properties @accessors(property=properties);
+
+	CPDictionary _attributesByName @accessors(getter=attributesByName);
+	CPDictionary _relationshipsByName @accessors(getter=relationshipsByName);
+    CPDictionary _propertiesByName @accessors(getter=propertiesByName);
+	CPArray _propertyNames @accessors(getter=propertyNames);
 }
 
 - (id)init
@@ -23,16 +28,17 @@
 	if(self = [super init])
 	{
 		_properties = [[CPMutableSet alloc] init];
+        _attributesByName = [[CPMutableDictionary alloc] init];
+        _relationshipsByName = [[CPMutableDictionary alloc] init];
+        _propertiesByName = [[CPMutableDictionary alloc] init];
+        _propertyNames = [[CPMutableArray alloc] init];
 	}
-	
 	return self;
 }
 
 + (CPManagedObject)insertNewObjectForEntityForName:(CPString)aEntityName inManagedObjectContext:(CPManagedObjectContext) aContext
 {
-	var result = [aContext insertNewObjectForEntityForName:aEntityName];
-	
-	return result;
+	return [aContext insertNewObjectForEntityForName:aEntityName];
 }
 
 - (CPManagedObject)createObject
@@ -53,7 +59,6 @@
 	{
 		newObject = [[CPManagedObject alloc] initWithEntity:self];
 	}
-	
 	return newObject;
 }
 
@@ -66,7 +71,6 @@
 	[tmp setIsOptional:isOptional];
 	[tmp setDeleteRule:aDeleteRule];
 	[tmp setDestinationEntityName:destinationEntityName];
-	
 	[self addProperty:tmp];
 }
 
@@ -78,80 +82,62 @@
 	[tmp setTypeValue:aAttributeType];
 	[tmp setClassValue:aClassValue];
 	[tmp setIsOptional:isOptional];
-	
 	[self addProperty:[tmp copy]];
 }
 
 - (void)addProperty:(CPPropertyDescription)property
 {
 	[_properties addObject:property];
+	_attributesByName = [self _filteredPropertiesOfClass: [CPAttributeDescription class]];
+	_relationshipsByName = [self _filteredPropertiesOfClass: [CPRelationshipDescription class]];
+    _propertiesByName = [self _filteredPropertiesOfClass: Nil];
+	_propertyNames = [_propertiesByName allKeys];
 }
 
-- (CPDictionary)attributesByName
+-(CPAttributeDescription)propertyWithName:(CPString)aName
 {
-	return [self _filteredPropertiesOfClass: [CPAttributeDescription class]];
+    return [_propertiesByName valueForKey:aName];
 }
 
-- (CPDictionary)relationshipsByName
+-(BOOL)isAttribute:(CPAttributeDescription)attribute
 {
-	return [self _filteredPropertiesOfClass: [CPRelationshipDescription class]];
+    return [attribute isKindOfClass:[CPAttributeDescription class]];
 }
 
-
-- (CPDictionary)propertiesByName
+-(BOOL)isMandatoryAttribute:(CPAttributeDescription)attribute
 {
-	return [self _filteredPropertiesOfClass: Nil];
+    var attr = [_attributesByName valueForKey:[attribute name]];
+    return ![attr isOptional];
 }
 
-- (CPArray)propertyNames
+-(BOOL)isMandatoryAttributeName:(CPString)attrName
 {
-	return [[self _filteredPropertiesOfClass: Nil] allKeys];
+    var attr = [_attributesByName valueForKey:attrName];
+    return ![attr isOptional];
 }
 
-- (CPArray)mandatoryAttributes
+-(BOOL)isRelationship:(CPAttributeDescription)attribute
 {
-	var result = [[CPMutableArray alloc] init];
-	var allAttributes = [self attributesByName];
-	
-	var allKeys = [allAttributes allKeys];
-	var i = 0;
-	
-	for(i=0;i<[allKeys count];i++)
-	{
-		var aKey = [allKeys objectAtIndex:i];
-		var attribute = [allAttributes objectForKey:aKey];
-	
-		if(attribute != nil && ![attribute isOptional])
-		{
-			[result addObject:aKey];
-		}
-	}
-	
-	return result
+    return [attribute isKindOfClass:[CPRelationshipDescription class]];
 }
 
-- (CPArray)mandatoryRelationships
+-(BOOL)isRelationshipName:(CPString)attrName
 {
-	var result = [[CPMutableArray alloc] init];
-	var allRC = [self relationshipsByName];
-	
-	var allKeys = [allRC allKeys];
-	var i = 0;
-	
-	for(i=0;i<[allKeys count];i++)
-	{
-		var aKey = [allKeys objectAtIndex:i];
-		var property = [allRC objectForKey:aKey];
-	
-		if(property != nil && ![property isOptional])
-		{
-			[result addObject:aKey];
-		}
-	}
-	
-	return result
+    var attr = [_relationshipsByName valueForKey:attrName];
+    return [self isRelationship:attr];
 }
 
+-(BOOL)isMandatoryRelationship:(CPAttributeDescription)attribute
+{
+    var attr = [_relationshipsByName valueForKey:[attribute name]];
+    return ![attr isOptional];
+}
+
+-(BOOL)isMandatoryRelationshipName:(CPString)propName
+{
+    var prop = [_relationshipsByName valueForKey:propName];
+    return ![prop isOptional];
+}
 
 - (CPDictionary) _filteredPropertiesOfClass: (Class) aClass
 {

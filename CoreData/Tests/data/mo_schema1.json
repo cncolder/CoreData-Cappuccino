@@ -43,6 +43,12 @@
                 "type":"string"
             }
         },
+        "array2":{
+            "type":"array",
+            "items":{
+                "type":"string"
+            }
+        },
         "missing":{
             "type":"string"
         },

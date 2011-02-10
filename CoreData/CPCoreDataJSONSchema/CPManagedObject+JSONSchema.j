@@ -68,7 +68,8 @@
 */
 -(id)JSONObject
 {
-    return [CPManagedJSONObject _JSONObjectWithObjjObject:[self data]];
+    return [CPManagedJSONObject _JSONObjectWithObjjObject:[self data]
+                                               withEntity:[self entity]];
 }
 
 -(void)setRawData:(CPDictionary)aDictionary
@@ -170,30 +171,82 @@
 }
 
 +(id)_JSONObjectWithObjjObject:(id)objjObject
+                    withEntity:(CPEntityDescription)aEntity
+{
+    return [CPManagedJSONObject _JSONObjectWithObjjObject:objjObject
+                                               withEntity:aEntity
+                                              forProperty:nil];
+}
+
++(id)_JSONObjectWithObjjObject:(id)objjObject
+                    withEntity:aEntity
+                   forProperty:(CPString)propName
 {
     if ([objjObject isKindOfClass:[CPArray class]])
     {
-        for (var i=0; i < objjObject.length; i++)
+        if (objjObject.length == 0)
         {
-            var old = [objjObject objectAtIndex:i];
-            var value = [self _JSONObjectWithObjjObject:old];
-            if (value !== old)
+            var property = [aEntity propertyWithName:propName];
+            if ([property isOptional])
             {
-                [objjObject replaceObjectAtIndex:i
-                                      withObject:value];
+                objjObject = nil;
             }
+        }
+        else
+        {
+            aEntity = [aEntity subentityWithName:propName];
+            for (var i=0; i < objjObject.length; i++)
+            {
+                var old = [objjObject objectAtIndex:i],
+                    value = [CPManagedJSONObject _JSONObjectWithObjjObject:old
+                                                                withEntity:aEntity
+                                                               forProperty:propName];
+                if (value !== old)
+                {
+                    [objjObject replaceObjectAtIndex:i
+                                          withObject:value];
+                }
 
+            }
         }
         return objjObject;
     }
     if ([objjObject isKindOfClass:[CPDictionary class]])
     {
-        var result = {},
-            keys = [[objjObject allKeys] objectEnumerator],
-            key;
-        while ((key = [keys nextObject]) != nil)
+        if (propName)
         {
-            result[key] = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject valueForKey:key]];
+            // we must use the subentity for the property
+            //TODO: what shall we do if we have no subentity
+            aEntity = [aEntity subentityWithName:propName];
+        }
+        var result = {},
+            e = [[aEntity properties] objectEnumerator],
+            property;
+        while ((property = [e nextObject]) != nil)
+        {
+            var key = [property name];
+            var value = [objjObject valueForKey:key];
+            if (value === undefined || value == nil)
+            {
+                if ([property isOptional])
+                {
+                    value = nil;
+                }
+                else
+                {
+                    value = [property defaultValue];
+                }
+            }
+            if (![property isOptional] || value != nil)
+            {
+                value = [CPManagedJSONObject _JSONObjectWithObjjObject:value
+                                                            withEntity:aEntity
+                                                           forProperty:key];
+                if (![property isOptional] || value != nil)
+                {
+                    result[key] = value;
+                }
+            }
         }
         return result
     }
