@@ -83,9 +83,10 @@ $BUILD_CJS_COREDATA = FILE.join($BUILD_DIR, "CommonJS");
 $BUILD_COREDATA_DEBUG_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks", "CoreData", "Debug");
 $BUILD_COREDATA_RELEASE_FRAMEWORKS = FILE.join($BUILD_CJS_COREDATA, "Frameworks", "CoreData");
 
-
-task ("install", ["release", "debug"], function()
+task ("package", ["release", "debug"], function()
 {
+    if (FILE.exists($BUILD_CJS_COREDATA))
+        rm_rf($BUILD_CJS_COREDATA);
     FILE.mkdirs($BUILD_COREDATA_RELEASE_FRAMEWORKS);
     cp_r(FILE.join($BUILD_DIR, "Release", "CoreData"), $BUILD_COREDATA_RELEASE_FRAMEWORKS);
     FILE.mkdirs($BUILD_COREDATA_DEBUG_FRAMEWORKS);
@@ -94,6 +95,11 @@ task ("install", ["release", "debug"], function()
     FILE.copy(FILE.join("package.json"), FILE.join($BUILD_CJS_COREDATA, "package.json"));
     // metadata for package.json
     setPackageMetadata(FILE.join($BUILD_CJS_COREDATA, "package.json"));
+    stream.print("\0green(Package built at " + $BUILD_CJS_COREDATA + ".\0)");
+});
+
+task ("install", ["package", "release", "debug"], function()
+{
     // install into narwhal
     if (OS.system(["tusk", "install", "--force", $BUILD_CJS_COREDATA]))
     {
