@@ -227,10 +227,10 @@
         transformerName += "ValueTransformer";
     }
     var transformer = [CPValueTransformer valueTransformerForName:transformerName];
-    if (   type == CPDTransformableAttributeType
-        && !transformer
-       )
-       CPLog.warn("Transformer %s not found!", transformerName);
+    //if (   type == CPDTransformableAttributeType
+    //    && !transformer
+    //   )
+    //   CPLog.warn("Transformer %s not found!", transformerName);
     return transformer
 }
 
