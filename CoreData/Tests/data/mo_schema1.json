@@ -25,6 +25,11 @@
                 "attr1":{
                     "type":"string",
                     "default":"default for attr1"
+                    },
+                "transform":{
+                    "type":"string",
+                    "default":"untransformed",
+                    "format":"TestTransformer"
                     }
             }
         },

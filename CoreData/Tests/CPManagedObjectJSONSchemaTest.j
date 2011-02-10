@@ -70,7 +70,7 @@ FILE = require("file");
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    var JSON = {"string1":"From JSON"}
+    var JSON = {"string1":"From JSON"};
     [obj setJSONObject:JSON];
     [self assert:"From JSON"
           equals:[obj valueForKey:"string1"]]
@@ -82,35 +82,59 @@ FILE = require("file");
     var obj = [entity createObject];
     var JSON = {"string1":"From JSON",
                 "object1":{"attr1":"attr1 from JSON"}
-               }
+               };
     [obj setJSONObject:JSON];
-    [self assert:[CPDictionary class]
+    [self assert:[CPManagedJSONObject class]
           equals:[[obj valueForKey:"object1"] class]
          message:"Wrong class from subobject!"];
     [self assert:"attr1 from JSON"
           equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
--(void)testGetJSONDataString
+-(void)testGetJSONDataSubobject
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    var JSON = {"string1":"From JSON"}
-    [obj setJSONObject:JSON];
-    [self assert:"{\"string1\":\"From JSON\",\"created\":null,\"enum1\":null,\"object1\":null,\"array1\":null}"
+    [self assert:"{\"string1\":\"default for string1\",\"created\":null,\"enum1\":\"tomorrow\",\"object1\":{\"attr1\":\"default for attr1\",\"transform\":\"untransformed\"},\"array1\":[]}"
           equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
 }
 
--(void)testgetJSONDataSubobject
+-(void)testTransformInSubobjectWithoutTransformer
 {
     var entity = [model entityWithName:"Type1"];
     var obj = [entity createObject];
-    var JSON = {"string1":"From JSON",
-                "object1":{"attr1":"attr1 from JSON"}
-               }
-    [obj setJSONObject:JSON];
-    [self assert:"{\"string1\":\"From JSON\",\"object1\":{\"attr1\":\"attr1 from JSON\"},\"created\":null,\"enum1\":null,\"array1\":null}"
-          equals:[[CPData dataWithJSONObject:[obj JSONObject]] rawString]];
+    [self assert:"untransformed"
+          equals:[obj valueForKeyPath:"object1.transform"]]
+}
+
+-(void)testTransformInSubobjectWithTransformer
+{
+    [CPValueTransformer setValueTransformer:[[TestSimpleTransformer alloc] init]
+                                    forName:@"TestTransformer"];
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    [self assert:"Transformed:untransformed"
+          equals:[obj valueForKeyPath:"object1.transform"]]
+}
+
+@end
+
+
+@implementation TestSimpleTransformer : CPValueTransformer
+
++(BOOL)allowsReverseTransformation
+{
+    return YES;
+}
+
+- (id)reverseTransformedValue:(id)aValue
+{
+    return [CPString stringWithFormat:"Reverse:%@", aValue];
+}
+
+- (id)transformedValue:(id)aValue
+{
+    return [CPString stringWithFormat:"Transformed:%@", aValue];
 }
 
 @end

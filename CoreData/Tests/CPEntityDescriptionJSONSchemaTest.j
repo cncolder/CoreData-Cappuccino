@@ -25,11 +25,11 @@ FILE = require("file");
     var prop = [entity createAttributeWithSubentityPath:"object1"];
     [self assertNotNull:prop
                 message:"Got no property!"];
-    [self assert:[CPMutableDictionary class]
+    [self assert:[CPManagedJSONObject class]
           equals:[prop class]
          message:"Wrong class!"];
     [self assert:"default for attr1"
-          equals:[prop objectForKey:"attr1"]];
+          equals:[prop valueForKey:"attr1"]];
 }
 
 @end

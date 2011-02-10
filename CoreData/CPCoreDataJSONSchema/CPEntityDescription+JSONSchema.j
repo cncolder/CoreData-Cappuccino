@@ -98,7 +98,7 @@
 }
 
 /*!
-    Create a CPDictionary from a subentity.
+    Create a managed object from a subentity.
 */
 -(id)createAttributeWithSubentityPath:(CPString)aNamePath
 {
@@ -106,12 +106,12 @@
     var firstDotIndex = aNamePath.indexOf(".");
     if (firstDotIndex === CPNotFound)
     {
-        return [[self subentityWithName:aNamePath] initialData];
+        return [[self subentityWithName:aNamePath] createObject];
     }
     var firstKeyComponent = aNamePath.substring(0, firstDotIndex),
         remainingKeyPath = aNamePath.substring(firstDotIndex + 1),
         entity = [self valueForKey:firstKeyComponent];
-    return [value valueForKeyPath:remainingKeyPath];
+    return [entity valueForKeyPath:remainingKeyPath];
 }
 
 /*!
@@ -128,7 +128,8 @@
         var value = [property defaultValue];
         if (value != nil)
         {
-            value = [CPManagedJSONObject _objjObjectWithJSONObject:value];
+            value = [CPManagedJSONObject _objjObjectWithJSONObject:value
+                                                         forEntity:self];
         }
         else if (![property isOptional])
         {

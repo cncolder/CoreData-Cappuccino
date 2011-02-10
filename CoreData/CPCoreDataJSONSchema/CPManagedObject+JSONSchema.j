@@ -59,7 +59,8 @@
 */
 -(void)setJSONObject:(id)JSONObject
 {
-    [self _setData:[[self class] _objjObjectWithJSONObject:JSONObject]];
+    [self _setData:[CPManagedJSONObject _objjObjectWithJSONObject:JSONObject
+                                                        forEntity:[self entity]]];
 }
 
 /**
@@ -96,17 +97,31 @@
 
 /*!
     Provide a objective-j object from a JSON-Object.
-
-    Properties are recursively replaced with CPDictionaries.
 */
-+(id)_objjObjectWithJSONObject:(id)JSONObject
++(CPObject)_objjObjectWithJSONObject:(id)JSONObject
+                           forEntity:(CPEntityDescription)aEntity
 {
+    return [self _objjObjectWithJSONObject:JSONObject
+                                 forEntity:aEntity
+                               forProperty:nil];
+}
+
++(CPObject)_objjObjectWithJSONObject:(id)JSONObject
+                           forEntity:aEntity
+                         forProperty:(CPString)propName
+{
+    if (JSONObject == nil)
+    {
+        return JSONObject;
+    }
     if (JSONObject instanceof Array)
     {
         for (var i=0; i < JSONObject.length; i++)
         {
             var old = [JSONObject objectAtIndex:i];
-            var value = [self _objjObjectWithJSONObject:old];
+            var value = [CPManagedJSONObject _objjObjectWithJSONObject:old
+                                                             forEntity:aEntity
+                                                           forProperty:propName];
             if (value !== old)
             {
                 [JSONObject replaceObjectAtIndex:i
@@ -118,21 +133,37 @@
     }
     if ((typeof JSONObject) == typeof {})
     {
-        // provide as a CPDictionary
-        var asDictionary = [CPDictionary dictionaryWithJSObject:JSONObject];
-        var keys = [[asDictionary allKeys] objectEnumerator];
-        var key;
-        while ((key = [keys nextObject]) != nil)
+        var result = nil;
+        // provide as a managed object
+        if (propName)
         {
-            var old = [asDictionary valueForKey:key];
-            var value = [self _objjObjectWithJSONObject:old];
-            if (value !== old)
-            {
-                [asDictionary setObject:value
-                                 forKey:key];
-            }
+            // we must use the subentity for the property
+            //TODO: what shall we do if we have no subentity
+            aEntity = [aEntity subentityWithName:propName];
+            result = [aEntity createObject];
         }
-        return asDictionary;
+        else
+        {
+            // the root object must be a dictionary
+            result = [CPMutableDictionary dictionary];
+        }
+        var e = [[aEntity properties] objectEnumerator];
+        var property;
+        while ((property = [e nextObject]) != nil)
+        {
+            var key = [property name];
+            var value = JSONObject[key];
+            if (value === undefined)
+            {
+                value = [property defaultValue];
+            }
+            value = [CPManagedJSONObject _objjObjectWithJSONObject:value
+                                                         forEntity:aEntity
+                                                       forProperty:key];
+            [result setValue:value
+                      forKey:key];
+        }
+        return result;
     }
     // no conversion needed
     return JSONObject;
@@ -165,6 +196,10 @@
             result[key] = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject valueForKey:key]];
         }
         return result
+    }
+    if ([objjObject isKindOfClass:[CPManagedJSONObject class]])
+    {
+        return [objjObject JSONObject];
     }
     return objjObject;
 }
