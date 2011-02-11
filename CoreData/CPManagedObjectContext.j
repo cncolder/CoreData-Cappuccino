@@ -365,6 +365,10 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 - (BOOL)saveObject:(CPManagedObject)aObject
              error:(CPError)error
 {
+    CPLog.debug(  "saveObject: registered " + [_registeredObjects count]
+                + ", updated "  + [_updatedObjectIDs count]
+                + ", inserted " + [_insertedObjectIDs count]
+                + ", deleted "  + [_deletedObjects count]);
     var result = NO,
         saveError = [CPReference new],
         updatedObjects = [CPSet new],
@@ -472,8 +476,10 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
  */
 - (BOOL) hasChanges
 {
-    CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
-    CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
+    CPLog.debug(  "registered " + [_registeredObjects count]
+                + ", updated "  + [_updatedObjectIDs count]
+                + ", inserted " + [_insertedObjectIDs count]
+                + ", deleted "  + [_deletedObjects count]);
     return    ([_updatedObjectIDs count] > 0)
            || ([_insertedObjectIDs count] > 0)
            || ([_deletedObjects count] > 0);
@@ -531,10 +537,10 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
             var localEntity = [[self model] entityWithName:[[aObjectID entity] name]];
             var localProperties = [CPSet setWithArray: [localEntity propertyNames]];
             [newPropertiesDict setObject:localProperties forKey:[[aObjectID entity] name]];
-
-
             var error = nil;
-            var resultSet = [[self store] fetchObjectsWithID:setWithObjIDs fetchProperties:newPropertiesDict error:error];
+            var resultSet = [[self store] fetchObjectsWithID:setWithObjIDs
+                                             fetchProperties:newPropertiesDict
+                                                       error:error];
             if(resultSet != nil && [resultSet count] > 0 && error == nil)
             {
                 var objectEnum = [resultSet objectEnumerator];
@@ -622,13 +628,11 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
     if(tmpentity != nil)
     {
         result_object = [tmpentity createObject];
-
         if(result_object != nil)
         {
             [self insertObject:result_object];
         }
     }
-
     return result_object
 }
 

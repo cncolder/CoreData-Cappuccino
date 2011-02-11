@@ -105,6 +105,68 @@ FILE = require("file");
              message:"Expected null for missing string in subobject!"];
 }
 
+-(void)testCreateSubObject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var object1 = [obj createObjectWithKeyPath:"object1"];
+    [self assertNotNull:object1
+                message:"Could not create object1!"];
+    [self assert:obj
+          equals:[object1 parentObject]
+         message:"Wrong or no parent set!"];
+    [self assert:"object1"
+          equals:[object1 keyPath]
+         message:"Wrong path!"];
+    [self assert:"object1"
+            equals:[[object1 entity] name]];
+}
+
+-(void)testCreateSubSubObject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var subobject = [obj createObjectWithKeyPath:"object1.subobject"];
+    [self assertNotNull:subobject
+                message:"Could not create object1.subobject!"];
+    [self assert:obj
+          equals:[subobject parentObject]
+         message:"Wrong or no parent set!"];
+    [self assert:"object1.subobject"
+          equals:[subobject keyPath]
+         message:"Wrong path!"];
+}
+
+-(void)testCreateSubObjectForArray
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var object1 = [obj createObjectWithKeyPath:"array1"];
+    [self assertNotNull:object1
+                message:"Could not create object for array1!"];
+    [self assert:obj
+          equals:[object1 parentObject]
+         message:"Wrong or no parent set for object in array1!"];
+    [self assert:"array1"
+          equals:[object1 keyPath]
+         message:"Wrong path!"];
+}
+
+-(void)testCreateSubSubObjectForArray
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var object1 = [obj createObjectWithKeyPath:"array1.subobject"];
+    [self assertNotNull:object1
+                message:"Could not create object!"];
+    [self assert:obj
+          equals:[object1 parentObject]
+         message:"Wrong or no parent set for object in array1!"];
+    [self assert:"array1.subobject"
+          equals:[object1 keyPath]
+         message:"Wrong path!"];
+}
+
 -(void)testGetJSONDataSubobject
 {
     var entity = [model entityWithName:"Type1"];
@@ -119,6 +181,11 @@ FILE = require("file");
     var obj = [entity createObject];
     [self assert:"untransformed"
           equals:[obj valueForKeyPath:"object1.transform"]]
+    var arr = [obj valueForKey:"array1"];
+    var d = [[entity subentityWithName:"array1"] createObject];
+    [arr addObject:d];
+    [self assert:"untransformed"
+          equals:[[arr objectAtIndex:0] valueForKey:"transform"]];
 }
 
 -(void)testTransformInSubobjectWithTransformer
@@ -129,6 +196,11 @@ FILE = require("file");
     var obj = [entity createObject];
     [self assert:"Transformed:untransformed"
           equals:[obj valueForKeyPath:"object1.transform"]]
+    var arr = [obj valueForKey:"array1"];
+    var d = [[entity subentityWithName:"array1"] createObject];
+    [arr addObject:d];
+    [self assert:"Transformed:untransformed"
+          equals:[[arr objectAtIndex:0] valueForKey:"transform"]];
 }
 
 @end

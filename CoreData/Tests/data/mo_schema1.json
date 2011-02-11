@@ -33,14 +33,39 @@
                     },
                 "missing":{
                     "type":"string"
-                }
+                    },
+                "subobject":{
+                    "type":"object",
+                    "properties":{
+                        "p1":{
+                            "type":"string",
+                            "default":"p1 in subobject of array1"
+                            }
+                        }
+                    }
             }
         },
         "array1":{
             "type":"array",
             "required":true,
             "items":{
-                "type":"string"
+                "type":"object",
+                "properties":{
+                    "transform":{
+                        "type":"string",
+                        "default":"untransformed",
+                        "format":"TestTransformer"
+                        },
+                    "subobject":{
+                        "type":"object",
+                        "properties":{
+                            "p1":{
+                                "type":"string",
+                                "default":"p1 in subobject of array1"
+                                }
+                            }
+                        }
+                    }
             }
         },
         "array2":{

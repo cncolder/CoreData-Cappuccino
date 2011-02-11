@@ -102,7 +102,6 @@
 */
 -(id)createAttributeWithSubentityPath:(CPString)aNamePath
 {
-    var result = nil;
     var firstDotIndex = aNamePath.indexOf(".");
     if (firstDotIndex === CPNotFound)
     {
@@ -117,7 +116,7 @@
 /*!
     Provide a dictionary initialized with the default values.
 */
--(CPDictionary)initialData
+-(CPDictionary)initialDataForObject:(CPManagedObject)aObject
 {
     var result = [[CPMutableDictionary alloc] init];
     var e = [[self properties] objectEnumerator];
@@ -129,7 +128,8 @@
         if (value != nil)
         {
             value = [CPManagedJSONObject _objjObjectWithJSONObject:value
-                                                         forEntity:self];
+                                                         forObject:aObject
+                                                        forKeyPath:propName];
         }
         else if (![property isOptional])
         {

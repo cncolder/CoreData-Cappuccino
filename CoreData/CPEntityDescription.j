@@ -31,7 +31,6 @@
         _attributesByName = [[CPMutableDictionary alloc] init];
         _relationshipsByName = [[CPMutableDictionary alloc] init];
         _propertiesByName = [[CPMutableDictionary alloc] init];
-        _propertyNames = [[CPMutableArray alloc] init];
 	}
 	return self;
 }
@@ -104,6 +103,11 @@
     return [attribute isKindOfClass:[CPAttributeDescription class]];
 }
 
+-(BOOL)isAttributeName:(CPString)aName
+{
+    return [[_propertiesByName valueForKey:aName] isKindOfClass:[CPAttributeDescription class]];
+}
+
 -(BOOL)isMandatoryAttribute:(CPAttributeDescription)attribute
 {
     var attr = [_attributesByName valueForKey:[attribute name]];
@@ -123,8 +127,7 @@
 
 -(BOOL)isRelationshipName:(CPString)attrName
 {
-    var attr = [_relationshipsByName valueForKey:attrName];
-    return [self isRelationship:attr];
+    return !![_relationshipsByName valueForKey:attrName];
 }
 
 -(BOOL)isMandatoryRelationship:(CPAttributeDescription)attribute

@@ -24,6 +24,10 @@
     A managed object which works with raw JSON data.
 */
 @implementation CPManagedJSONObject : CPManagedObject
+{
+    CPManagedObject _parent @accessors(property=parentObject);
+    CPManagedObject _keyPath @accessors(property=keyPath);
+}
 
 +(id)objectWithObject:(CPManagedObject)object
 {
@@ -47,11 +51,52 @@
 }
 
 /*!
+    Create a new subobject for an object by providing the key path.
+
+    A new object will be returned which was created from the subentity assigned
+    to the key path.
+    The new object has an association to the receiver but is not assigned to
+    a property of the receiver. Any changes made to the new object will mark
+    the receiver as changed even if the object is or will never be assigned to
+    a property of the receiver. The new object must not be used in an other
+    object than the receiver.
+*/
+- (CPManagedObject)createObjectWithKeyPath:(CPString)keyPath
+{
+    var entity = [self entity],
+        key = keyPath,
+        firstKeyComponent;
+    while (keyPath)
+    {
+        var firstDotIndex = keyPath.indexOf(".");
+        if (firstDotIndex === CPNotFound)
+        {
+            firstKeyComponent = keyPath;
+            keyPath = nil;
+        }
+        else
+        {
+            firstKeyComponent = keyPath.substring(0, firstDotIndex);
+            keyPath = keyPath.substring(firstDotIndex + 1);
+        }
+        entity = [entity subentityWithName:firstKeyComponent];
+        if (!keyPath)
+        {
+            var result = [entity createObject];
+            [result setParentObject:self];
+            [result setKeyPath:key];
+            return result;
+        }
+    }
+    return nil;
+}
+
+/*!
     Reset all values to the defaults by converting the default from JSON.
 */
 - (void)_resetObjectDataForProperties
 {
-	_data = [_entity initialData];
+	_data = [_entity initialDataForObject:self];
 }
 
 /**
@@ -60,7 +105,7 @@
 -(void)setJSONObject:(id)JSONObject
 {
     [self _setData:[CPManagedJSONObject _objjObjectWithJSONObject:JSONObject
-                                                        forEntity:[self entity]]];
+                                                        forObject:self]];
 }
 
 /**
@@ -100,20 +145,30 @@
     Provide a objective-j object from a JSON-Object.
 */
 +(CPObject)_objjObjectWithJSONObject:(id)JSONObject
-                           forEntity:(CPEntityDescription)aEntity
+                           forObject:(CPManagedJSONObject)aObject
 {
     return [self _objjObjectWithJSONObject:JSONObject
-                                 forEntity:aEntity
-                               forProperty:nil];
+                                 forObject:aObject
+                                forKeyPath:""];
 }
 
 +(CPObject)_objjObjectWithJSONObject:(id)JSONObject
-                           forEntity:aEntity
-                         forProperty:(CPString)propName
+                           forObject:aObject
+                          forKeyPath:(CPString)keyPath
 {
     if (JSONObject == nil)
     {
         return JSONObject;
+    }
+    var propName;
+    var lastDotIndex = keyPath.indexOf(".");
+    if (lastDotIndex === CPNotFound)
+    {
+        propName = keyPath;
+    }
+    else
+    {
+        propName = keyPath.substring(lastDotIndex + 1);
     }
     if (JSONObject instanceof Array)
     {
@@ -121,8 +176,8 @@
         {
             var old = [JSONObject objectAtIndex:i];
             var value = [CPManagedJSONObject _objjObjectWithJSONObject:old
-                                                             forEntity:aEntity
-                                                           forProperty:propName];
+                                                             forObject:aObject
+                                                            forKeyPath:propName];
             if (value !== old)
             {
                 [JSONObject replaceObjectAtIndex:i
@@ -136,12 +191,13 @@
     {
         var result = nil;
         // provide as a managed object
+        var aEntity = [aObject entity];
         if (propName)
         {
             // we must use the subentity for the property
             //TODO: what shall we do if we have no subentity
             aEntity = [aEntity subentityWithName:propName];
-            result = [aEntity createObject];
+            result = aObject = [aEntity createObject];
         }
         else
         {
@@ -158,9 +214,10 @@
             {
                 value = [property defaultValue];
             }
+            var path = [keyPath stringByAppendingFormat:".%s", key];
             value = [CPManagedJSONObject _objjObjectWithJSONObject:value
-                                                         forEntity:aEntity
-                                                       forProperty:key];
+                                                         forObject:aObject
+                                                        forKeyPath:path];
             [result setValue:value
                       forKey:key];
         }
@@ -255,6 +312,29 @@
         return [objjObject JSONObject];
     }
     return objjObject;
+}
+
+- (void)willChangeValueForKey:(CPString)aKey
+{
+    [super willChangeValueForKey:aKey];
+    if (_context == nil && _parent != nil)
+    {
+        [_parent willChangeValueForKey:_keyPath];
+    }
+}
+
+- (void)didChangeValueForKey:(CPString)aKey
+{
+    [super didChangeValueForKey:aKey];
+    if (_context == nil && _parent != nil)
+    {
+        [_parent didChangeValueForKey:_keyPath];
+    }
+}
+
+-(CPString)description
+{
+    return [CPString stringWithFormat:"%@ for entity %s",[self class], [[self entity] name]];
 }
 
 @end
