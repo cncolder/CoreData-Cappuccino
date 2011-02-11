@@ -186,7 +186,7 @@
             var old = [JSONObject objectAtIndex:i];
             var value = [CPManagedJSONObject _objjObjectWithJSONObject:old
                                                              forObject:aObject
-                                                            forKeyPath:propName];
+                                                            forKeyPath:keyPath];
             if (value !== old)
             {
                 [JSONObject replaceObjectAtIndex:i

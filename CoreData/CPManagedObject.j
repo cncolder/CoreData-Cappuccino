@@ -219,7 +219,22 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 
 - (void)takeStoredValue:(id)value forKey:(CPString)aKey
 {
-    if([self isPropertyOfTypeRelationship: aKey])
+    if ([self isPropertyOfTypeAttribute:aKey])
+    {
+        if (   value == nil
+            || [[self entity] acceptValue:value forProperty:aKey]
+           )
+        {
+            [self willChangeValueForKey:aKey];
+            [self _setChangedObject:value forKey:aKey];
+            [self didChangeValueForKey:aKey];
+        }
+        else
+        {
+            [self _unexpectedValueTypeError:aKey expectedType:[[self attributeClassValue:aKey] className] receivedType:[value className]];
+        }
+    }
+    else if([self isPropertyOfTypeRelationship: aKey])
     {
         var values;
         if([value isKindOfClass:[CPSet class]])
@@ -238,21 +253,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
         else
         {
             [self addObject:value toBothSideOfRelationship:aKey];
-        }
-    }
-    else if([self isPropertyOfTypeAttribute: aKey])
-    {
-        [self willChangeValueForKey:aKey];
-        if (   value == nil
-            || [[self entity] acceptValue:value forProperty:aKey]
-           )
-        {
-            [self _setChangedObject:value forKey:aKey];
-            [self didChangeValueForKey:aKey];
-        }
-        else
-        {
-            [self _unexpectedValueTypeError:aKey expectedType:[[self attributeClassValue:aKey] className] receivedType:[value className]];
         }
     }
 }
@@ -375,7 +375,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
         {
             [_context insertObject:tmpObjectID];
         }
-
         [self didChangeValueForKey:propertyName];
     }
 }
@@ -433,11 +432,6 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
 /*
  *    Detect changes and notify the context
  */
-- (void)willChangeValueForKey:(CPString)aKey
-{
-    [super willChangeValueForKey:aKey];
-}
-
 - (void)didChangeValueForKey:(CPString)aKey
 {
     [super didChangeValueForKey:aKey];
