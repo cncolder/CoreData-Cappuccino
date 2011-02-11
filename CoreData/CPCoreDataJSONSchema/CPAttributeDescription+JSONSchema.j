@@ -20,6 +20,7 @@
 {
     CPArray _enumValues @accessors(getter=enumValues);
     CPString _valueFormat @accessors(property=valueFormat);
+    CPString _propertyType @accessors(property=propertyType);
 
     id _rawJSON @accessors(property=rawJSON);
 }
@@ -67,6 +68,7 @@
             };
         }
         type = type !== undefined && type || "object";
+        _propertyType = type;
         var format = aPropertyObject["format"];
         if (format !== undefined && format)
         {

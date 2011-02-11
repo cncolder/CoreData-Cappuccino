@@ -156,12 +156,8 @@
                            forObject:aObject
                           forKeyPath:(CPString)keyPath
 {
-    if (JSONObject == nil)
-    {
-        return JSONObject;
-    }
     var propName;
-    var lastDotIndex = keyPath.indexOf(".");
+    var lastDotIndex = keyPath.lastIndexOf(".");
     if (lastDotIndex === CPNotFound)
     {
         propName = keyPath;
@@ -169,6 +165,19 @@
     else
     {
         propName = keyPath.substring(lastDotIndex + 1);
+    }
+    if (JSONObject == nil)
+    {
+        if (propName)
+        {
+            var aEntity = [aObject entity];
+            var property = [aEntity propertyWithName:propName];
+            if ([property propertyType] == "array")
+            {
+                return [CPArray array];
+            }
+        }
+        return JSONObject;
     }
     if (JSONObject instanceof Array)
     {
@@ -196,8 +205,16 @@
         {
             // we must use the subentity for the property
             //TODO: what shall we do if we have no subentity
+            var top = aObject;
+            while ([top parentObject] != nil)
+            {
+                top = [top parentObject];
+            }
             aEntity = [aEntity subentityWithName:propName];
-            result = aObject = [aEntity createObject];
+            aObject = [aEntity createObject],
+            [aObject setKeyPath:keyPath];
+            [aObject setParentObject:top];
+            result = aObject;
         }
         else
         {
@@ -214,7 +231,15 @@
             {
                 value = [property defaultValue];
             }
-            var path = [keyPath stringByAppendingFormat:".%s", key];
+            var path;
+            if (keyPath)
+            {
+                path = [keyPath stringByAppendingFormat:".%s", key];
+            }
+            else
+            {
+                path = key;
+            }
             value = [CPManagedJSONObject _objjObjectWithJSONObject:value
                                                          forObject:aObject
                                                         forKeyPath:path];
@@ -319,7 +344,16 @@
     [super willChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
-        [_parent willChangeValueForKey:_keyPath];
+        var firstDot = _keyPath.indexOf(".");
+        if (firstDot !== CPNotFound)
+        {
+            aKey = _keyPath.substring(0, firstDot);
+        }
+        else
+        {
+            aKey = _keyPath;
+        }
+        [_parent willChangeValueForKey:aKey];
     }
 }
 
@@ -328,7 +362,16 @@
     [super didChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
-        [_parent didChangeValueForKey:_keyPath];
+        var firstDot = _keyPath.indexOf(".");
+        if (firstDot !== CPNotFound)
+        {
+            aKey = _keyPath.substring(0, firstDot);
+        }
+        else
+        {
+            aKey = _keyPath;
+        }
+        [_parent didChangeValueForKey:aKey];
     }
 }
 

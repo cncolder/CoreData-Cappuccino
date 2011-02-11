@@ -39,7 +39,7 @@
                     "properties":{
                         "p1":{
                             "type":"string",
-                            "default":"p1 in subobject of array1"
+                            "default":"p1 in subobject of object1"
                             }
                         }
                     }

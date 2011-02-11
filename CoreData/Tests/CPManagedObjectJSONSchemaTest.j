@@ -91,6 +91,15 @@ FILE = require("file");
           equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
+-(void)testSetAttributeSubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    [[obj valueForKey:"object1"] setValue:"set" forKey:"attr1"];
+    [self assert:"set"
+          equals:[obj valueForKeyPath:"object1.attr1"]];
+}
+
 -(void)testSetJSONDataMissingProperties
 {
     var entity = [model entityWithName:"Type1"];
@@ -99,10 +108,8 @@ FILE = require("file");
     [obj setJSONObject:JSON];
     [self assertNull:[obj valueForKey:"missing"]
              message:"Expected null for missing string!"];
-    [self assertNull:[obj valueForKey:"missingArray"]
-             message:"Expected null for missing array!"];
-    [self assertNull:[obj valueForKeyPath:"array1.missing"]
-             message:"Expected null for missing string in subobject!"];
+    [self assertTrue:[[obj valueForKey:"missingArray"] isKindOfClass:[CPArray class]]
+         message:"Expected CPArray for missing array!"];
 }
 
 -(void)testCreateSubObject

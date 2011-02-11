@@ -133,7 +133,7 @@
         }
         else if (![property isOptional])
         {
-            if ([property rawJSON].type == "array")
+            if ([property propertyType] == "array")
             {
                 value = [];
             }
@@ -141,6 +141,11 @@
             {
                 value = [self createAttributeWithSubentityPath:propName];
             }
+        }
+        else if ([property propertyType] == "array")
+        {
+            // arrays are always initialized as an emtpy array
+            value = [];
         }
         [result setObject:value forKey:propName];
     }
