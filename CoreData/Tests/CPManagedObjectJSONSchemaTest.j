@@ -100,6 +100,63 @@ FILE = require("file");
           equals:[obj valueForKeyPath:"object1.attr1"]];
 }
 
+-(void)testInitializedSetAttributeSubsubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    [[obj valueForKey:"object1"] setValue:[obj createObjectWithKeyPath:"object1.subobject"] forKey:"subobject"];
+    [self assertNotNull:[[obj valueForKey:"object1"] valueForKey:"subobject"]];
+    [[[obj valueForKey:"object1"] valueForKey:"subobject"] setValue:"set" forKey:"p1"];
+    [self assert:"set"
+          equals:[obj valueForKeyPath:"object1.subobject.p1"]];
+}
+
+-(void)testJSONSetAttributeSubsubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"object1":{"subobject":{"p1":"json"}}};
+    [obj setJSONObject:JSON];
+    [self assertNotNull:[[obj valueForKey:"object1"] valueForKey:"subobject"]];
+    [[[obj valueForKey:"object1"] valueForKey:"subobject"] setValue:"set" forKey:"p1"];
+    [self assert:"set"
+          equals:[obj valueForKeyPath:"object1.subobject.p1"]];
+}
+
+-(void)testJSONSetAttributeArraySubobject
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"array1":[{"subobject":{"p1":"json"}}]};
+    [obj setJSONObject:JSON];
+    [self assertNotNull:[obj valueForKey:"array1"][0]];
+    [[[obj valueForKey:"array1"][0] valueForKey:"subobject"] setValue:"set" forKey:"p1"];
+    [self assert:"set"
+          equals:[[obj valueForKey:"array1"][0] valueForKeyPath:"subobject.p1"]];
+}
+
+-(void)testInitializedSetAttributeInnerArrayChange
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var arrayValue = [obj createObjectWithKeyPath:"array1"];
+    [[obj valueForKey:"array1"] addObject:[obj createObjectWithKeyPath:"array1"]];
+    [[obj valueForKey:"array1"][0] setValue:"a" forKey:"innerarray"];
+    [self assert:"a"
+          equals:[[obj valueForKey:"array1"][0] valueForKey:"innerarray"]];
+}
+
+-(void)testJSONSetAttributeInnerArrayChange
+{
+    var entity = [model entityWithName:"Type1"];
+    var obj = [entity createObject];
+    var JSON = {"array1":[{}]};
+    [obj setJSONObject:JSON];
+    [[obj valueForKey:"array1"][0] setValue:"a" forKey:"innerarray"];
+    [self assert:"a"
+          equals:[[obj valueForKey:"array1"][0] valueForKeyPath:"innerarray"]];
+}
+
 -(void)testSetJSONDataMissingProperties
 {
     var entity = [model entityWithName:"Type1"];

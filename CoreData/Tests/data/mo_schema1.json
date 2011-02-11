@@ -64,6 +64,14 @@
                                 "default":"p1 in subobject of array1"
                                 }
                             }
+                        },
+                    "innerarray":{
+                        "type":"array",
+                        "items":{
+                            "item":{
+                                "type":"string",
+                                }
+                            }
                         }
                     }
             }
