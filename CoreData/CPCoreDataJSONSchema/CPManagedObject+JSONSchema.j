@@ -266,12 +266,13 @@
 {
     if ([objjObject isKindOfClass:[CPArray class]])
     {
+        var result = [];
         if (objjObject.length == 0)
         {
             var property = [aEntity propertyWithName:propName];
             if ([property isOptional])
             {
-                objjObject = nil;
+                result = nil;
             }
         }
         else
@@ -279,19 +280,13 @@
             aEntity = [aEntity subentityWithName:propName];
             for (var i=0; i < objjObject.length; i++)
             {
-                var old = [objjObject objectAtIndex:i],
-                    value = [CPManagedJSONObject _JSONObjectWithObjjObject:old
+                var value = [CPManagedJSONObject _JSONObjectWithObjjObject:[objjObject objectAtIndex:i]
                                                                 withEntity:aEntity
                                                                forProperty:propName];
-                if (value !== old)
-                {
-                    [objjObject replaceObjectAtIndex:i
-                                          withObject:value];
-                }
-
+                [result addObject:value];
             }
         }
-        return objjObject;
+        return result;
     }
     if ([objjObject isKindOfClass:[CPDictionary class]])
     {
