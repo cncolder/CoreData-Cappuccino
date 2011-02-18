@@ -217,7 +217,7 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 }
 
 
-- (CPSet) _executeStoreFetchRequest:(CPFetchRequest) aFetchRequest
+- (CPSet) _executeStoreFetchRequest:(CPFetchRequest)aFetchRequest
 {
     var error;
     var resultArray = [[CPMutableArray alloc] init];
@@ -551,7 +551,6 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
                     [[objectFromResponse objectID] setLocalID: [aObjectID localID]];
                     objectFromResponse = [self _registerObject:objectFromResponse];
                     aObjectID = [objectFromResponse objectID];
-//                    CPLog.trace("_fetchObjectWithID: " + [[objectFromResponse objectID] localID]);
                     return objectFromResponse;
                 }
             }
@@ -741,9 +740,10 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
             postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
                           object: self
                         userInfo: userInfo];
-
-        CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
-        CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
+        CPLog.debug(  "Object did change: registered " + [_registeredObjects count]
+                    + ", updated "  + [_updatedObjectIDs count]
+                    + ", inserted " + [_insertedObjectIDs count]
+                    + ", deleted "  + [_deletedObjects count]);
     }
 }
 
