@@ -21,11 +21,11 @@
         var data = [CPURLConnection sendSynchronousRequest:request returningResponse:nil];
         [schemas setObject:[data rawString] forKey:name];
     }
-    return [[self alloc] initWithJSONSchemas:schemas];
+    return [[CPManagedObjectModel alloc] initWithJSONSchemas:schemas];
 }
 
 /*!
-    Asynchronously load the schemas from URLs.
+    Asynchronous load schemas from URLs.
 
     The model returned has no entities assigned. The delegate will receive
     these callbacks:
@@ -59,8 +59,7 @@
     if (self)
     {
         var iter = [schemas keyEnumerator],
-            schema;
-        var name;
+            name;
         while (name = [iter nextObject])
         {
             var schema = [schemas objectForKey:name];

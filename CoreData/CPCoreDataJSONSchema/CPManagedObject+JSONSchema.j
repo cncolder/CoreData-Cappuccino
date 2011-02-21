@@ -29,25 +29,21 @@
     CPManagedObject _keyPath @accessors(property=keyPath);
 }
 
-+(id)objectWithObject:(CPManagedObject)object
-{
-    return [[self alloc] initWithObject:object];
-}
+/*!
+  Create a clone from an existing managed object.
 
--(id)initWithObject:(CPManagedObject)object
+  The clone will have the exact same data and the same global ID.
+  */
+-(id)clone
 {
-    self = [super initWithEntity:[object entity]];
-    if (self)
+    var result = [[self entity] createObject];
+    if (result)
     {
-        var props = [[self entity] propertyNames];
-        var i=0;
-        for (;i < [props count]; i++)
-        {
-            var name = props[i];
-            [self setValue:[object valueForKey:name] forKey:name];
-        }
+        [result setJSONObject:[self JSONObject]];
+        var objectID = [result objectID];
+        [objectID setGlobalID:[[self objectID] globalID]];
     }
-    return self;
+    return result;
 }
 
 -(void)objectDidChange
