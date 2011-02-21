@@ -50,6 +50,15 @@
     return self;
 }
 
+-(void)objectDidChange
+{
+    [_context _objectDidChange:self];
+    if ([_context autoSaveChanges])
+    {
+        [_context saveChanges];
+    }
+}
+
 /*!
     Create a new subobject for an object by providing the key path.
 
@@ -334,6 +343,21 @@
     return objjObject;
 }
 
+-(CPString)description
+{
+    return [CPString stringWithFormat:"%@ for entity %s",[self class], [[self entity] name]];
+}
+
+@end
+
+
+/*!
+  We need a special KeyValueObserving for subobjects in managed objects because
+  the managed object needs to be informed about changes to update the state in
+  it's managed object.
+  */
+@implementation CPManagedJSONObject (KeyValueObserving)
+
 - (void)willChangeValueForKey:(CPString)aKey
 {
     [super willChangeValueForKey:aKey];
@@ -368,11 +392,6 @@
         }
         [_parent didChangeValueForKey:aKey];
     }
-}
-
--(CPString)description
-{
-    return [CPString stringWithFormat:"%@ for entity %s",[self class], [[self entity] name]];
 }
 
 @end
