@@ -27,6 +27,8 @@
 {
     CPManagedObject _parent @accessors(property=parentObject);
     CPManagedObject _keyPath @accessors(property=keyPath);
+
+    BOOL _updateLock;
 }
 
 /*!
@@ -51,7 +53,7 @@
     [_context _objectDidChange:self];
     if ([_context autoSaveChanges])
     {
-        [_context saveChanges];
+        [_context saveChanges:nil];
     }
 }
 
@@ -109,8 +111,10 @@
 */
 -(void)setJSONObject:(id)JSONObject
 {
+    _updateLock = YES;
     [self _setData:[CPManagedJSONObject _objjObjectWithJSONObject:JSONObject
                                                         forObject:self]];
+    _updateLock = NO;
 }
 
 /**
@@ -356,6 +360,10 @@
 
 - (void)willChangeValueForKey:(CPString)aKey
 {
+    if (_updateLock)
+    {
+        return;
+    }
     [super willChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
@@ -374,6 +382,10 @@
 
 - (void)didChangeValueForKey:(CPString)aKey
 {
+    if (_updateLock)
+    {
+        return;
+    }
     [super didChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
