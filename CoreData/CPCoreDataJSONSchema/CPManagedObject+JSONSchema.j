@@ -28,7 +28,7 @@
     CPManagedObject _parent @accessors(property=parentObject);
     CPManagedObject _keyPath @accessors(property=keyPath);
 
-    BOOL _updateLock;
+    BOOL _updateLock @accessors(getter=updateLock);
 }
 
 /*!
@@ -383,7 +383,6 @@
     {
         return;
     }
-    [super willChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
         var firstDot = _keyPath.indexOf(".");
@@ -395,8 +394,13 @@
         {
             aKey = _keyPath;
         }
+        if ([_parent updateLock])
+        {
+            return;
+        }
         [_parent willChangeValueForKey:aKey];
     }
+    [super willChangeValueForKey:aKey];
 }
 
 - (void)didChangeValueForKey:(CPString)aKey
@@ -405,7 +409,6 @@
     {
         return;
     }
-    [super didChangeValueForKey:aKey];
     if (_context == nil && _parent != nil)
     {
         var firstDot = _keyPath.indexOf(".");
@@ -417,8 +420,13 @@
         {
             aKey = _keyPath;
         }
+        if ([_parent updateLock])
+        {
+            return;
+        }
         [_parent didChangeValueForKey:aKey];
     }
+    [super didChangeValueForKey:aKey];
 }
 
 @end
