@@ -21,7 +21,7 @@
 
 -(void)testInsertNewEntity
 {
-    var obj = [context insertNewObjectForEntityForName:"Testentity"]
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
     [self assertNotNull:obj
                 message:"No object created!"];
     [self assert:1
@@ -39,7 +39,7 @@
 
 -(void)testSaveChangesWithInsert
 {
-    var obj = [context insertNewObjectForEntityForName:"Testentity"]
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
     [self assertTrue:[context saveChanges:nil]];
     [self assert:0
           equals:[[context insertedObjects] count]
@@ -51,7 +51,7 @@
 
 -(void)testSaveObjectInserted
 {
-    var obj = [context insertNewObjectForEntityForName:"Testentity"]
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
     [self assertTrue:[context saveObject:obj error:nil]];
     [self assert:0
           equals:[[context insertedObjects] count]
@@ -63,8 +63,8 @@
 
 -(void)testSaveOnlyOneObject
 {
-    var obj = [context insertNewObjectForEntityForName:"Testentity"]
-    var obj1 = [context insertNewObjectForEntityForName:"Testentity"]
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
+    var obj1 = [context insertNewObjectForEntityForName:"Testentity"];
     [self assertTrue:[context saveObject:obj error:nil]];
     [self assert:1
           equals:[[context insertedObjects] count]
@@ -72,6 +72,28 @@
     [self assert:2
           equals:[[context registeredObjects] count]
          message:"Not enough registered objects in context after save!"];
+}
+
+-(void)testFindObjectByLocalID
+{
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
+    [self assert:obj
+          equals:[context objectRegisteredForID:[obj objectID]]];
+}
+
+-(void)testFindObjectByGlobalID
+{
+    var obj = [context insertNewObjectForEntityForName:"Testentity"];
+    [[obj objectID] setGlobalID:"global"];
+    [self assert:obj
+          equals:[context objectRegisteredForID:[obj objectID]]];
+    var ID = [[CPManagedObjectID alloc] initWithEntity:nil
+                                              globalID:"unknown"
+                                           isTemporary:NO];
+    [self assertNull:[context objectRegisteredForID:ID]];
+    [ID setGlobalID:"global"];
+    [self assert:obj
+          equals:[context objectRegisteredForID:ID]];
 }
 
 @end
