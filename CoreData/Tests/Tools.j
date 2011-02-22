@@ -31,7 +31,7 @@
 +(CPManagedObjectContext)testContextWithModel:(CPManagedObjectModel)aModel
                                     storeType:(CPStorageType)aStoreType
 {
-    var model = model || [Tools testModel];
+    var model = aModel || [Tools testModel];
     var storeType = storeType || [StorageWithSaveObjectsUpdatedType class];
     var coordinator = [[CPPersistentStoreCoordinator alloc]
                                  initWithManagedObjectModel:model

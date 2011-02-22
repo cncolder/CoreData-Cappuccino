@@ -16,7 +16,8 @@ FILE = require("file");
     var urlBase = FILE.join(FILE.dirname(module.path), "data");
     var schemas = [[CPMutableDictionary alloc] init];
     [schemas setObject:FILE.join(urlBase, "mo_schema1.json") forKey:"Type1"];
-    model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
+    model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas
+                                                    named:"test"];
 }
 
 -(void)testCreateStringAttribute

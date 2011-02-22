@@ -13,7 +13,8 @@ FILE = require("file");
 -(void)testInitWithoutSchema
 {
     var schemas = [CPDictionary dictionary];
-    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
+    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas
+                                                        named:"test"];
     [self assertNotNull:model];
 }
 
@@ -24,7 +25,8 @@ FILE = require("file");
     var schemas = [[CPMutableDictionary alloc] init];
     [schemas setObject:FILE.join(urlBase, "schema1.json") forKey:"Application"];
     [schemas setObject:FILE.join(urlBase, "schema2.json") forKey:"Contract"];
-    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
+    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas
+                                                        named:"schema?"];
     [self assertNotNull:model];
     var entity = [model entityWithName:"Application"];
     [self assertNotNull:entity
@@ -49,7 +51,8 @@ FILE = require("file");
     var urlBase = FILE.join(FILE.dirname(module.path), "data");
     var schemas = [[CPMutableDictionary alloc] init];
     [schemas setObject:FILE.join(urlBase, "schema1.json") forKey:"Application"];
-    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas];
+    var model = [CPManagedObjectModel modelWithJSONSchemaURLs:schemas
+                                                        named:"schema?"];
     [self assertNotNull:model];
     var entity = [model entityWithName:"Application"];
     [self assertNotNull:entity

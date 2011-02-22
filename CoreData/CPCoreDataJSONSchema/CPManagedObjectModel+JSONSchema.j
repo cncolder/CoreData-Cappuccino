@@ -8,6 +8,7 @@
     Load the schemas from URLs.
 */
 +(id)modelWithJSONSchemaURLs:(CPDictionary)URLs
+                       named:(CPString)aModelName
 {
     var iter = [URLs keyEnumerator],
         schemas = [[CPMutableDictionary alloc] init];
@@ -21,7 +22,8 @@
         var data = [CPURLConnection sendSynchronousRequest:request returningResponse:nil];
         [schemas setObject:[data rawString] forKey:name];
     }
-    return [[CPManagedObjectModel alloc] initWithJSONSchemas:schemas];
+    return [[CPManagedObjectModel alloc] initWithJSONSchemas:schemas
+                                                       named:aModelName];
 }
 
 /*!
@@ -36,9 +38,11 @@
      -(void)model:didFailWithURL: (last)
 */
 +(id)modelWithJSONSchemaURLs:(CPDictionary)URLs
+                       named:(CPString)aModelName
                     delegate:(id)aDelegate
 {
     var model = [[CPManagedObjectModel alloc] init];
+    [model setName:aModelName];
     [model loadWithURLs:URLs
                delegate:aDelegate];
     return model;
@@ -54,10 +58,12 @@
 }
 
 -(id)initWithJSONSchemas:(CPDictionary)schemas
+                   named:(CPString)aModelname
 {
     self = [self init];
     if (self)
     {
+        _name = aModelname;
         var iter = [schemas keyEnumerator],
             name;
         while (name = [iter nextObject])

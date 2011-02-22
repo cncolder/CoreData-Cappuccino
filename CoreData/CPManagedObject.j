@@ -51,40 +51,33 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
     CPMutableDictionary _changedData @accessors(getter=changedData);
 }
 
-- (void)dealloc
+-(id)init
 {
-    [super dealloc];
-}
-
-- (id)initWithEntity:(CPEntityDescription)entity
-{
-    if(self = [super init])
+    if (self = [super init])
     {
         _propertiesData = [[CPMutableDictionary alloc] init];
         _changedData = [[CPMutableDictionary alloc] init];
-        _entity = entity;
-        _objectID = [[CPManagedObjectID alloc] initWithEntity:_entity globalID:nil isTemporary:YES];
-        _context = nil;
-        _isFault = NO;
-        _isDeleted = NO;
         _isUpdated = NO;
-        [self _resetObjectDataForProperties];
+        _isDeleted = NO;
+        _isFault = NO;
     }
     return self;
 }
 
+- (id)initWithEntity:(CPEntityDescription)entity
+{
+    return [self initWithEntity:entity inManagedObjectContext:nil];
+}
+
 - (id)initWithEntity:(CPEntityDescription)entity inManagedObjectContext:(CPManagedObjectContext)aContext
 {
-    if(self = [super init])
+    if (self = [self init])
     {
-        _propertiesData = [[CPMutableDictionary alloc] init];
-        _changedData = [[CPMutableDictionary alloc] init];
         _entity = entity;
-        _objectID = [[CPManagedObjectID alloc] initWithEntity:_entity globalID:nil isTemporary:YES];
+        _objectID = [[CPManagedObjectID alloc] initWithEntity:_entity
+                                                     globalID:nil
+                                                  isTemporary:YES];
         _context = aContext;
-        _isFault = NO;
-        _isDeleted = NO;
-        _isUpdated = NO;
         [self _resetObjectDataForProperties];
         [_context insertObject:self];
     }
@@ -438,7 +431,7 @@ CPManagedObjectUnexpectedValueTypeForProperty = "CPManagedObjectUnexpectedValueT
     [_context _objectDidChange:self];
     if ([_context autoSaveChanges])
     {
-        [_context saveChanges];
+        [_context saveChanges:nil];
     }
 }
 

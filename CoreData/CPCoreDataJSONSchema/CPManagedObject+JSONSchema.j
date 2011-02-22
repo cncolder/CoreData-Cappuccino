@@ -351,6 +351,25 @@
 @end
 
 
+@implementation CPManagedJSONObject (CPCoreDataSerialization)
+
+- (CPDictionary)serializeProperties:(CPDictionary)data
+{
+    var JSObj = [CPManagedJSONObject _JSONObjectWithObjjObject:data
+                                                    withEntity:[self entity]];
+    return [CPString JSONFromObject:JSObj];
+}
+
+- (CPDictionary)deserializeProperties:(CPDictionary)data
+{
+    var obj = [CPManagedJSONObject _objjObjectWithJSONObject:[data objectFromJSON]
+                                                   forObject:self];
+    return obj;
+}
+
+@end
+
+
 /*!
   We need a special KeyValueObserving for subobjects in managed objects because
   the managed object needs to be informed about changes to update the state in

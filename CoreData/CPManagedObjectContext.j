@@ -365,10 +365,11 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 - (BOOL)saveObject:(CPManagedObject)aObject
              error:(CPError)error
 {
-    CPLog.debug(  "saveObject: registered " + [_registeredObjects count]
-                + ", updated "  + [_updatedObjectIDs count]
-                + ", inserted " + [_insertedObjectIDs count]
-                + ", deleted "  + [_deletedObjects count]);
+    CPLog.debug(  "context:" + self
+                + " saveObject: reg " + [_registeredObjects count]
+                + ", upd "  + [_updatedObjectIDs count]
+                + ", ins " + [_insertedObjectIDs count]
+                + ", del "  + [_deletedObjects count]);
     var result = NO,
         saveError = [CPReference new],
         updatedObjects = [CPSet new],
@@ -476,10 +477,11 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
  */
 - (BOOL) hasChanges
 {
-    CPLog.debug(  "registered " + [_registeredObjects count]
-                + ", updated "  + [_updatedObjectIDs count]
-                + ", inserted " + [_insertedObjectIDs count]
-                + ", deleted "  + [_deletedObjects count]);
+    CPLog.debug(  "context:" + self
+                + " reg " + [_registeredObjects count]
+                + ", upd "  + [_updatedObjectIDs count]
+                + ", ins " + [_insertedObjectIDs count]
+                + ", del "  + [_deletedObjects count]);
     return    ([_updatedObjectIDs count] > 0)
            || ([_insertedObjectIDs count] > 0)
            || ([_deletedObjects count] > 0);
@@ -740,10 +742,11 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
             postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
                           object: self
                         userInfo: userInfo];
-        CPLog.debug(  "Object did change: registered " + [_registeredObjects count]
-                    + ", updated "  + [_updatedObjectIDs count]
-                    + ", inserted " + [_insertedObjectIDs count]
-                    + ", deleted "  + [_deletedObjects count]);
+        CPLog.debug(  "context:" + self
+                    + " Object did change: reg " + [_registeredObjects count]
+                    + ", upd "  + [_updatedObjectIDs count]
+                    + ", ins " + [_insertedObjectIDs count]
+                    + ", del "  + [_deletedObjects count]);
     }
 }
 
