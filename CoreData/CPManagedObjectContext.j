@@ -769,8 +769,8 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
             [regObject _applyToContext:self];
             aObject = regObject;
         }
-        var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: regObject]
-                                               forKey: CPDUpdatedObjectsKey];
+        var userInfo = [CPDictionary dictionaryWithObject:[CPSet setWithObject:aObject]
+                                                   forKey:CPDUpdatedObjectsKey];
         [[CPNotificationCenter defaultCenter]
                         postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
                                       object: self

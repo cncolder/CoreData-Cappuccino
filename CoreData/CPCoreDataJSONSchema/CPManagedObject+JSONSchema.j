@@ -42,10 +42,15 @@
     if (result)
     {
         [result setJSONObject:[self JSONObject]];
-        var objectID = [result objectID];
-        [objectID setGlobalID:[[self objectID] globalID]];
+        [[result objectID] updateWithObjectID:_objectID];
     }
     return result;
+}
+
+- (void)_updateWithObject:(CPManagedObject) aObject
+{
+    [_objectID updateWithObjectID:[aObject objectID]];
+    [self setJSONObject:[aObject JSONObject]];
 }
 
 -(void)objectDidChange
