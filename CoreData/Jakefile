@@ -27,16 +27,6 @@
  * THE SOFTWARE.
  * 
  */
-var OS = require("os"),
-    ENV = require("system").env,
-var SYSTEM = require("system");
-var OS = require("os");
-var UTIL = require("narwhal/util");
-var FILE = require("file");
-
-global.$CONFIGURATION                   = SYSTEM.env['CONFIG'];
-global.$BUILD_DIR                       = SYSTEM.env['BUILD_PATH'];
-global.$BUILD_CONFIGURATION_DIR         = FILE.join($BUILD_DIR, $CONFIGURATION);
 
 var ENV = require("system").env,
     FILE = require("file"),
