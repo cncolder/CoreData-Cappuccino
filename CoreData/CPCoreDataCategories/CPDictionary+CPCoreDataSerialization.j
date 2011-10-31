@@ -30,7 +30,7 @@
 }
 
 
-
+/*
 +(id)dictionaryWithJSObject:(id)object recursively:(BOOL)recursively
 {
 	var updatedObject = object;
@@ -96,5 +96,6 @@
 	
 	return result._buckets;
 }
+*/
 
 @end

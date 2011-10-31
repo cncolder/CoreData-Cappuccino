@@ -16,6 +16,11 @@
 	CPString _name @accessors(property=name);
 	CPString _externalName @accessors(property=externalName);
 	CPMutableSet _properties @accessors(property=properties);
+
+	CPDictionary _attributesByName @accessors(getter=attributesByName);
+	CPDictionary _relationshipsByName @accessors(getter=relationshipsByName);
+    CPDictionary _propertiesByName @accessors(getter=propertiesByName);
+	CPArray _propertyNames @accessors(getter=propertyNames);
 }
 
 - (id)init
@@ -23,16 +28,16 @@
 	if(self = [super init])
 	{
 		_properties = [[CPMutableSet alloc] init];
+        _attributesByName = [[CPMutableDictionary alloc] init];
+        _relationshipsByName = [[CPMutableDictionary alloc] init];
+        _propertiesByName = [[CPMutableDictionary alloc] init];
 	}
-	
 	return self;
 }
 
 + (CPManagedObject)insertNewObjectForEntityForName:(CPString)aEntityName inManagedObjectContext:(CPManagedObjectContext) aContext
 {
-	var result = [aContext insertNewObjectForEntityForName:aEntityName];
-	
-	return result;
+	return [aContext insertNewObjectForEntityForName:aEntityName];
 }
 
 - (CPManagedObject)createObject
@@ -53,7 +58,6 @@
 	{
 		newObject = [[CPManagedObject alloc] initWithEntity:self];
 	}
-	
 	return newObject;
 }
 
@@ -66,7 +70,6 @@
 	[tmp setIsOptional:isOptional];
 	[tmp setDeleteRule:aDeleteRule];
 	[tmp setDestinationEntityName:destinationEntityName];
-	
 	[self addProperty:tmp];
 }
 
@@ -78,80 +81,66 @@
 	[tmp setTypeValue:aAttributeType];
 	[tmp setClassValue:aClassValue];
 	[tmp setIsOptional:isOptional];
-	
 	[self addProperty:[tmp copy]];
 }
 
 - (void)addProperty:(CPPropertyDescription)property
 {
 	[_properties addObject:property];
+	_attributesByName = [self _filteredPropertiesOfClass: [CPAttributeDescription class]];
+	_relationshipsByName = [self _filteredPropertiesOfClass: [CPRelationshipDescription class]];
+    _propertiesByName = [self _filteredPropertiesOfClass: Nil];
+	_propertyNames = [_propertiesByName allKeys];
 }
 
-- (CPDictionary)attributesByName
+-(CPAttributeDescription)propertyWithName:(CPString)aName
 {
-	return [self _filteredPropertiesOfClass: [CPAttributeDescription class]];
+    return [_propertiesByName valueForKey:aName];
 }
 
-- (CPDictionary)relationshipsByName
+-(BOOL)isAttribute:(CPAttributeDescription)attribute
 {
-	return [self _filteredPropertiesOfClass: [CPRelationshipDescription class]];
+    return [attribute isKindOfClass:[CPAttributeDescription class]];
 }
 
-
-- (CPDictionary)propertiesByName
+-(BOOL)isAttributeName:(CPString)aName
 {
-	return [self _filteredPropertiesOfClass: Nil];
+    return [[_propertiesByName valueForKey:aName] isKindOfClass:[CPAttributeDescription class]];
 }
 
-- (CPArray)propertyNames
+-(BOOL)isMandatoryAttribute:(CPAttributeDescription)attribute
 {
-	return [[self _filteredPropertiesOfClass: Nil] allKeys];
+    var attr = [_attributesByName valueForKey:[attribute name]];
+    return ![attr isOptional];
 }
 
-- (CPArray)mandatoryAttributes
+-(BOOL)isMandatoryAttributeName:(CPString)attrName
 {
-	var result = [[CPMutableArray alloc] init];
-	var allAttributes = [self attributesByName];
-	
-	var allKeys = [allAttributes allKeys];
-	var i = 0;
-	
-	for(i=0;i<[allKeys count];i++)
-	{
-		var aKey = [allKeys objectAtIndex:i];
-		var attribute = [allAttributes objectForKey:aKey];
-	
-		if(attribute != nil && ![attribute isOptional])
-		{
-			[result addObject:aKey];
-		}
-	}
-	
-	return result
+    var attr = [_attributesByName valueForKey:attrName];
+    return ![attr isOptional];
 }
 
-- (CPArray)mandatoryRelationships
+-(BOOL)isRelationship:(CPAttributeDescription)attribute
 {
-	var result = [[CPMutableArray alloc] init];
-	var allRC = [self relationshipsByName];
-	
-	var allKeys = [allRC allKeys];
-	var i = 0;
-	
-	for(i=0;i<[allKeys count];i++)
-	{
-		var aKey = [allKeys objectAtIndex:i];
-		var property = [allRC objectForKey:aKey];
-	
-		if(property != nil && ![property isOptional])
-		{
-			[result addObject:aKey];
-		}
-	}
-	
-	return result
+    return [attribute isKindOfClass:[CPRelationshipDescription class]];
 }
 
+-(BOOL)isRelationshipName:(CPString)attrName
+{
+    return !![_relationshipsByName valueForKey:attrName];
+}
+
+-(BOOL)isMandatoryRelationship:(CPAttributeDescription)attribute
+{
+    var attr = [_relationshipsByName valueForKey:[attribute name]];
+    return ![attr isOptional];
+}
+
+-(BOOL)isMandatoryRelationshipName:(CPString)propName
+{
+    var prop = [_relationshipsByName valueForKey:propName];
+    return ![prop isOptional];
+}
 
 - (CPDictionary) _filteredPropertiesOfClass: (Class) aClass
 {
@@ -175,21 +164,68 @@
 
 - (BOOL)acceptValue:(id) aValue forProperty:(CPString) aKey
 {
-	var result = NO;
 	var theProperty = [[self propertiesByName] objectForKey:aKey]
-	result = [theProperty acceptValue:aValue];
-	return result;
+	return [theProperty acceptValue:aValue];
+}
+
+/**
+    Transform a value with the properties transformer into an internal value.
+
+    This is used by the managed object when a value is returned from the object.
+*/
+- (id)transformValue:(id)aValue forProperty:(CPString)aKey
+{
+	var theProperty = [[self attributesByName] objectForKey:aKey];
+    if (theProperty)
+    {
+        var transformer = [self _transformerForProperty:theProperty];
+        if (transformer)
+        {
+            return [transformer transformedValue:aValue];
+        }
+    }
+    return aValue;
 }
 
 
+- (id)reverseTransformValue:(id)aValue forProperty:(CPString)aKey
+{
+	var theProperty = [[self attributesByName] objectForKey:aKey];
+    if (theProperty)
+    {
+        var transformer = [self _transformerForProperty:theProperty];
+        if (transformer && [[transformer class] allowsReverseTransformation])
+        {
+            return [transformer reverseTransformedValue:aValue];
+        }
+    }
+    return aValue;
+}
+
+-(CPString)_transformerForProperty:(CPPropertyDescription)aProperty
+{
+    var transformerName = "";
+    var type = [aProperty typeValue];
+    if (type == CPDTransformableAttributeType)
+    {
+        transformerName = [aProperty valueTransformerName];
+    }
+    else
+    {// This allows us to write transformers for standard data types eg. CPDate
+        transformerName = [aProperty typeName];
+        transformerName += "ValueTransformer";
+    }
+    var transformer = [CPValueTransformer valueTransformerForName:transformerName];
+    //if (   type == CPDTransformableAttributeType
+    //    && !transformer
+    //   )
+    //   CPLog.warn("Transformer %s not found!", transformerName);
+    return transformer
+}
+
 - (BOOL) isEqual:(CPEntityDescription)aEntity
 {
-	if([[aEntity name] isEqualToString:_name])
-	{
-		return YES;
-	}
-	
-	return NO;
+	return [[aEntity name] isEqualToString:_name];
 }
 
 
@@ -203,16 +239,13 @@
 	result = result + "name:" + [self name] + ";";
 	result = result + "\n";
 	result = result + "externalName:" + [self externalName] + ";";
-	
 	var propertiesE = [_properties objectEnumerator];
 	var aProperty;
-	
 	while((aProperty = [propertiesE nextObject]))
 	{
 		result = result + "\n";
 		result = result + [aProperty stringRepresentation];
 	}
-
 	return result;
 }
 

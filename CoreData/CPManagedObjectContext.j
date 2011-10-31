@@ -8,13 +8,14 @@
 @import "CPManagedObject.j"
 @import "CPManagedObjectID.j"
 @import "CPManagedObjectModel.j"
-@import "CPPersistantStore.j"
+@import "CPPersistentStore.j"
 
-/* 
+/*
 
 ***** HEADER *****
 @public
 - (CPArray) executeFetchRequest:(CPFetchRequest)aFetchRequest;
+- (CPArray) executeStoreFetchRequest:(CPFetchRequest)aFetchRequest;
 
 @private
 - (CPSet) _executeLocalFetchRequest:(CPFetchRequest) aFetchRequest;
@@ -45,201 +46,234 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 
 @implementation CPManagedObjectContext : CPObject
 {
-	BOOL _autoSaveChanges;
-	CPPersistentStoreCoordinator _storeCoordinator @accessors(property=storeCoordinator);
-	
-	CPMutableSet _registeredObjects;
-	CPMutableSet _insertedObjectIDs;
-	CPMutableSet _updatedObjectIDs;
-	CPMutableSet _deletedObjects;
+    BOOL _autoSaveChanges;
+    CPPersistentStoreCoordinator _storeCoordinator @accessors(property=storeCoordinator);
+
+    CPMutableSet _registeredObjects;
+    CPMutableSet _insertedObjectIDs;
+    CPMutableSet _updatedObjectIDs;
+    CPMutableSet _deletedObjects;
 }
 
 - (id) init
 {
-	if ((self = [super init]))
-	{
-		_autoSaveChanges = false;
-		_registeredObjects = [CPMutableSet new];
-		_insertedObjectIDs = [CPMutableSet new];
-		_updatedObjectIDs = [CPMutableSet new];
-		_deletedObjects = [CPMutableSet new];
-	}
-	
-	return self;
+    if ((self = [super init]))
+    {
+        _autoSaveChanges = false;
+        _registeredObjects = [CPMutableSet new];
+        _insertedObjectIDs = [CPMutableSet new];
+        _updatedObjectIDs = [CPMutableSet new];
+        _deletedObjects = [CPMutableSet new];
+    }
+
+    return self;
 }
 
-- (id) initWithPersistantStoreCoordinator:(CPPersistentStoreCoordinator)aStoreCoordinator
+- (id) initWithPersistentStoreCoordinator:(CPPersistentStoreCoordinator)aStoreCoordinator
 {
-	if ((self = [super init]))
-	{
-		_autoSaveChanges = false;
-		_registeredObjects = [CPMutableSet new];
-		_insertedObjectIDs = [CPMutableSet new];
-		_updatedObjectIDs = [CPMutableSet new];
-		_deletedObjects = [CPMutableSet new];
-		
-		_storeCoordinator = aStoreCoordinator;
-		[self loadAll];
-	}
-	
-	return self;
+    if ((self = [super init]))
+    {
+        _autoSaveChanges = false;
+        _registeredObjects = [CPMutableSet new];
+        _insertedObjectIDs = [CPMutableSet new];
+        _updatedObjectIDs = [CPMutableSet new];
+        _deletedObjects = [CPMutableSet new];
+
+        _storeCoordinator = aStoreCoordinator;
+        [self loadAll];
+    }
+
+    return self;
 }
 
 - (void)dealloc
 {
-	[super dealloc];
+    [super dealloc];
 }
 
 - (CPManagedObjectModel)model
 {
-	return [_storeCoordinator managedObjectModel];
+    return [_storeCoordinator managedObjectModel];
 }
 
-- (CPPersistantStore)store
+- (CPPersistentStore)store
 {
-	return [_storeCoordinator persistantStore];
+    return [_storeCoordinator persistentStore];
 }
 
 - (BOOL) autoSaveChanges
 {
-	return _autoSaveChanges;
+    return _autoSaveChanges;
 }
 
 - (void) setAutoSaveChanges:(BOOL)aState
 {
-	_autoSaveChanges = aState;
+    _autoSaveChanges = aState;
 }
 
 // @TODO update methods to use _executeStoreFetchRequest
 - (CPManagedObject) updateObject:(CPManagedObject) aObject mergeChanges:(BOOL) mergeChanges
 {
-	return nil;
+    return nil;
 }
 
 // @TODO update methods to use _executeStoreFetchRequest
 - (CPManagedObject) updateObjectWithID:(CPManagedObjectID) aObjectID mergeChanges:(BOOL) mergeChanges
 {
-	return nil;
+    return nil;
 }
 
 // @TODO fetchLimit is missing
 - (CPArray) executeFetchRequest:(CPFetchRequest)aFetchRequest
+                          error:(CPError)anError
 {
-	var result = nil;
-	
-	var localSetResult = [self _executeLocalFetchRequest:aFetchRequest];
-	var remoteSetResult = [self _executeStoreFetchRequest:aFetchRequest];
-	[remoteSetResult unionSet:localSetResult];
-	
-	var unsortedResult = [remoteSetResult allObjects];
-		
-	if([aFetchRequest sortDescriptors] != nil)
-		result = [unsortedResult sortedArrayUsingDescriptors:[aFetchRequest sortDescriptors]];
-	else
-		result = unsortedResult;
-	
-	if([aFetchRequest fetchLimit] > 0 && [result count] > [aFetchRequest fetchLimit])
-		return [result subarrayWithRange:CPMakeRange(0,[aFetchRequest fetchLimit])];
-		
-	return result;
-}   
+    var result = nil;
 
+    var localSetResult = [self _executeLocalFetchRequest:aFetchRequest];
+    var remoteSetResult = [self _executeStoreFetchRequest:aFetchRequest];
+    [remoteSetResult unionSet:localSetResult];
+
+    var unsortedResult = [remoteSetResult allObjects];
+
+    if([aFetchRequest sortDescriptors] != nil)
+        result = [unsortedResult sortedArrayUsingDescriptors:[aFetchRequest sortDescriptors]];
+    else
+        result = unsortedResult;
+
+    if([aFetchRequest fetchLimit] > 0 && [result count] > [aFetchRequest fetchLimit])
+        return [result subarrayWithRange:CPMakeRange(0,[aFetchRequest fetchLimit])];
+
+    return result;
+}
+
+/**
+    Execute a fetch on the store only.
+
+    The store must implement executeFetchRequest:inManagedObjectContext:error.
+
+    Transparent mode:
+        Data received from the store is not added to the managed object
+        context.
+*/
+- (CPArray) executeStoreFetchRequest:(CPFetchRequest)aFetchRequest
+{
+    var error = nil;
+    var resultArray = [[CPMutableArray alloc] init];
+    var resultSet = [[self store] executeFetchRequest:aFetchRequest
+                              inManagedObjectContext:self
+                                               error:error];
+    if ([aFetchRequest error])
+    {
+        return nil;
+    }
+    else if (   resultSet != nil
+             && [resultSet count] > 0
+            )
+    {
+        var transparent = [aFetchRequest transparentFetch];
+        var objectEnum = [resultSet objectEnumerator];
+        var objectFromResponse;
+        while ((objectFromResponse = [objectEnum nextObject]))
+        {
+            if (transparent)
+            {
+                [resultArray addObject:objectFromResponse];
+            }
+            else
+            {
+                [resultArray addObject:[self _registerObject:objectFromResponse]];
+            }
+        }
+    }
+    return resultArray;
+}
 
 - (CPSet) _executeLocalFetchRequest:(CPFetchRequest) aFetchRequest
-{	
-	var resultArray = [[CPMutableArray alloc] init];
-	var searchPredicate = nil;
-	var entityPredicate = [CPPredicate predicateWithFormat:@"%K like %@", @"entity.name", [[aFetchRequest entity] name]];
-	
-	if([aFetchRequest predicate] == nil)
-	{
-		searchPredicate = entityPredicate;	
-	}
-	else
-	{
-		searchPredicate = [CPCompoundPredicate andPredicateWithSubpredicates:[entityPredicate, [aFetchRequest predicate]]];
-	}
-	
-	var unsortedResult = [[_registeredObjects allObjects] filteredArrayUsingPredicate:searchPredicate];
+{
+    var resultArray = [[CPMutableArray alloc] init];
+    var searchPredicate = nil;
+    var entityPredicate = [CPPredicate predicateWithFormat:@"%K like %@", @"entity.name", [[aFetchRequest entity] name]];
 
-	if([aFetchRequest sortDescriptors] != nil)
-		resultArray = [unsortedResult sortedArrayUsingDescriptors:[aFetchRequest sortDescriptors]];
-	else
-		resultArray = unsortedResult;
-			
-	if([aFetchRequest fetchLimit] > 0 && [resultArray count] > [aFetchRequest fetchLimit])
-		return [CPSet setWithArray:[resultArray subarrayWithRange:CPMakeRange(0,[aFetchRequest fetchLimit])]];
-		
-	return [CPSet setWithArray:resultArray];
+    if([aFetchRequest predicate] == nil)
+    {
+        searchPredicate = entityPredicate;
+    }
+    else
+    {
+        searchPredicate = [CPCompoundPredicate andPredicateWithSubpredicates:[entityPredicate, [aFetchRequest predicate]]];
+    }
+
+    var unsortedResult = [[_registeredObjects allObjects] filteredArrayUsingPredicate:searchPredicate];
+
+    if([aFetchRequest sortDescriptors] != nil)
+        resultArray = [unsortedResult sortedArrayUsingDescriptors:[aFetchRequest sortDescriptors]];
+    else
+        resultArray = unsortedResult;
+
+    if([aFetchRequest fetchLimit] > 0 && [resultArray count] > [aFetchRequest fetchLimit])
+        return [CPSet setWithArray:[resultArray subarrayWithRange:CPMakeRange(0,[aFetchRequest fetchLimit])]];
+
+    return [CPSet setWithArray:resultArray];
 }
 
 
-//@TODO write store fetching
-- (CPSet) _executeStoreFetchRequest:(CPFetchRequest) aFetchRequest
+- (CPSet) _executeStoreFetchRequest:(CPFetchRequest)aFetchRequest
 {
-	var error;
-	var resultArray = [[CPMutableArray alloc] init];
-	
-	if([[self store] respondsToSelector:@selector(executeFetchRequest:inManagedObjectContext:error:)])
-	{
-		var resultSet = [[self store] executeFetchRequest:aFetchRequest
-								  inManagedObjectContext:self
-												   error:error];
-
-		if(resultSet != nil && [resultSet count] > 0 && error == nil)
-		{
-			var objectEnum = [resultSet objectEnumerator];
-			var objectFromResponse;
-			while((objectFromResponse = [objectEnum nextObject]))
-			{
-				[result addObject:[self _registerObject:objectFromResponse]];
-			}
-		}
-	}
-	
-	return [CPSet setWithArray:resultArray];
+    var error;
+    var resultArray = [[CPMutableArray alloc] init];
+    if ([[self store] respondsToSelector:@selector(executeFetchRequest:inManagedObjectContext:error:)])
+    {
+        var resultSet = [[self store] executeFetchRequest:aFetchRequest
+                                  inManagedObjectContext:self
+                                                   error:error];
+        if (resultSet != nil && [resultSet count] > 0 && error == nil)
+        {
+            var objectEnum = [resultSet objectEnumerator];
+            var objectFromResponse;
+            while((objectFromResponse = [objectEnum nextObject]))
+            {
+                [resultArray addObject:[self _registerObject:objectFromResponse]];
+            }
+        }
+    }
+    return [CPSet setWithArray:resultArray];
 }
 
 
 - (void) reset
 {
-	var result = YES;
-
-	[_registeredObjects makeObjectsPerformSelector:@selector(_resetChangedDataForProperties)];
-		
-	[_updatedObjectIDs removeAllObjects];
-	[_insertedObjectIDs removeAllObjects];
-	[_deletedObjects removeAllObjects];
-	// 			
-	// CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
-	// CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
-	// 
-	return result;
+    var result = YES;
+    [_registeredObjects makeObjectsPerformSelector:@selector(_resetChangedDataForProperties)];
+    [_updatedObjectIDs removeAllObjects];
+    [_insertedObjectIDs removeAllObjects];
+    [_deletedObjects removeAllObjects];
+    return result;
 }
 
 
 - (void) rollback
-{ 
+{
 }
 
 - (BOOL)saveAll
 {
-	var result = YES;
-	var error = nil;
-	
-	result = [self reset];
-	[[self store] saveAll:[self registeredObjects] error:error];
-	
-	[[CPNotificationCenter defaultCenter]
-						postNotificationName: CPManagedObjectContextDidSaveAllObjectsNotification
-									  object: self
-									userInfo: nil];
-	return result;
+    var error = nil;
+    var result = [self reset];
+    [[self store] saveAll:[self registeredObjects] error:error];
+    [[CPNotificationCenter defaultCenter]
+                        postNotificationName: CPManagedObjectContextDidSaveAllObjectsNotification
+                                      object: self
+                                    userInfo: nil];
+    return result;
 }
 
 
 - (BOOL) loadAll
 {
+    var error = nil;
+    var result = YES;
+    var resultSet = nil;
+    var propertiesDictionary = [[CPMutableDictionary alloc] init];
 	var error = nil;
 	var result = YES;
 	var resultSet = nil;
@@ -254,525 +288,608 @@ CPDDeletedObjectsKey = "CPDDeletedObjectsKey";
 		[propertiesDictionary setObject:propertiesFromEntity forKey:[aEntity name]];
 	}
 
-	resultSet = [[self store] loadAll:propertiesDictionary inManagedObjectContext:self error:error];
-	if(resultSet != nil && [resultSet count] > 0 && error == nil)
-	{		
-		var resultEnumerator = [[resultSet allObjects] objectEnumerator];
-		var objectFromResponse;
-				
-		while(objectFromResponse = [resultEnumerator nextObject])
-		{
-			[self _registerObject:objectFromResponse];	
-		}
-	}
-	
-	[self hasChanges];
-	[[CPNotificationCenter defaultCenter] postNotificationName:CPManagedObjectContextDidLoadObjectsNotification 
-														object: self 
-													  userInfo: nil];
-	return result;
-}
+    var allEntities = [[[self model] entities] objectEnumerator];
+    var aEntity;
 
-			   
-- (BOOL)saveChanges
-{
-	var result = NO;
+    while((aEntity = [allEntities nextObject]))
+    {
+        var propertiesFromEntity = [CPSet setWithArray: [aEntity propertyNames]];
+        [propertiesDictionary setObject:propertiesFromEntity forKey:[aEntity name]];
+    }
+    resultSet = [[self store] loadAll:propertiesDictionary inManagedObjectContext:self error:error];
+    if(resultSet != nil && [resultSet count] > 0 && error == nil)
+    {
+        var resultEnumerator = [[resultSet allObjects] objectEnumerator];
+        var objectFromResponse;
 
-	if([self hasChanges] && [[self store] respondsToSelector: @selector(saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)])
-	{
-		var error = nil;	
-		var updatedObjects = [self updatedObjects];
-		var insertedObjects = [self insertedObjects];
-		var deletedObjects = [self deletedObjects];
-		
-		[self _validateUpdatedObject:updatedObjects insertedObjects:insertedObjects];
-		
-		if([updatedObjects count] > 0 || [insertedObjects count] > 0 || [deletedObjects count] > 0)
-		{
-			var resultSet = [[self store] saveObjectsUpdated:updatedObjects
-												inserted:insertedObjects
-												 deleted:deletedObjects
-								  inManagedObjectContext:self
-												   error:error];
-					  
-			if(resultSet != nil && [resultSet count] > 0 && error == nil)
-			{
-				var objectsEnum = [resultSet objectEnumerator];
-				var objectFromResponse;
-				while((objectFromResponse = [objectsEnum nextObject]))
-				{
-					var registeredObject = [self objectRegisteredForID:[objectFromResponse objectID]];
-				
-					if(registeredObject != nil)
-					{
-						[[registeredObject objectID] setGlobalID: [[objectFromResponse objectID] globalID]];
-						[[registeredObject objectID] setIsTemporary: [[objectFromResponse objectID] isTemporary]];
-					}
-				}
-			}
-			if(error == nil)
-				result = [self reset];
-			
-			[[CPNotificationCenter defaultCenter]
-				postNotificationName: CPManagedObjectContextDidSaveNotification
-							  object: self
-							userInfo: nil];
-							
-			[[CPNotificationCenter defaultCenter]
-								postNotificationName: CPManagedObjectContextDidSaveChangedObjectsNotification
-											  object: self
-											userInfo: nil];
-											
-		
-		}
-	}
-	else
-	{
-		result = [self saveAll];
-	}
-	
-	return result;
+        while(objectFromResponse = [resultEnumerator nextObject])
+        {
+            [self _registerObject:objectFromResponse];
+        }
+    }
+    [[CPNotificationCenter defaultCenter] postNotificationName:CPManagedObjectContextDidLoadObjectsNotification
+                                                        object:self
+                                                      userInfo:nil];
+    return result;
 }
 
 
-- (void) _validateUpdatedObject:({CPSet}) updated insertedObjects:({CPSet}) inserted
+/**
+    Update, insert or delete objects depending on their current state.
+
+    Uses saveAll if the store doesn't support selector
+    saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:
+
+    TODO: better error handling
+
+    @param error should be nil or a CPReference, will receive a CPError object on error.
+*/
+- (BOOL)saveChanges:(CPError)error
 {
-	var unionSet = [[CPMutableSet alloc] init];
-	[unionSet unionSet:updated];
-	[unionSet unionSet:inserted];
-	
-	var enumerator = [unionSet objectEnumerator];
-	var aObject;
-	
-	while((aObject = [enumerator nextObject]))
-	{
-		if(![aObject validateForUpdate])
-		{
-			[updated removeObject:aObject];
-			[inserted removeObject:aObject];
-			
-			var objectEnum = [unionSet objectEnumerator];
-			var object;
-			while((object = [objectEnum nextObject]))
-			{
-				if([object _containsObject:[aObject objectID]])
-				{
-					[updated removeObject:object];
-					[inserted removeObject:object];
-				}
-			}
-		}
-	}
+    if (![self hasChanges])
+    {
+        return YES
+    }
+    var result = NO;
+    if ([[self store] respondsToSelector:@selector(
+                          saveObjectsUpdated:inserted:deleted:inManagedObjectContext:error:)]
+       )
+    {
+        var saveError = [CPReference new],
+            updatedObjects = [self updatedObjects],
+            insertedObjects = [self insertedObjects],
+            deletedObjects = [self deletedObjects];
+        var modifiedObjects = [self _saveObjectsUpdated:updatedObjects
+                                               inserted:insertedObjects
+                                                deleted:deletedObjects
+                                                  error:saveError];
+        if ([saveError isNil])
+        {
+            result = [self reset];
+        }
+        else if (error && [error isNil])
+        {
+            // return the error to the caller
+            [error setObject:[saveError object]];
+        }
+        [[CPNotificationCenter defaultCenter]
+            postNotificationName: CPManagedObjectContextDidSaveNotification
+                          object: self
+                        userInfo: nil];
+        [[CPNotificationCenter defaultCenter]
+                            postNotificationName: CPManagedObjectContextDidSaveChangedObjectsNotification
+                                          object: self
+                                        userInfo: nil];
+    }
+    else
+    {
+        result = [self saveAll];
+    }
+    return result;
+}
+
+
+/*!
+    Save a single object from the context.
+
+    Whatever needs to be done with the object will be done. This can be
+    insert/update or delete.
+*/
+- (BOOL)saveObject:(CPManagedObject)aObject
+             error:(CPError)error
+{
+    CPLog.debug(  "context:" + self
+                + " saveObject: reg " + [_registeredObjects count]
+                + ", upd "  + [_updatedObjectIDs count]
+                + ", ins " + [_insertedObjectIDs count]
+                + ", del "  + [_deletedObjects count]);
+    var result = NO,
+        saveError = [CPReference new],
+        updatedObjects = [CPSet new],
+        insertedObjects = [CPSet new],
+        deletedObjects = [CPSet new],
+        obj;
+    obj = [self _insertedObjectWithID:[aObject objectID]];
+    if (obj)
+        [insertedObjects addObject:obj];
+    obj = [self _updatedObjectWithID:[aObject objectID]];
+    if (obj)
+        [updatedObjects addObject:obj];
+    obj = [self _deletedObjectWithID:[aObject objectID]];
+    if (obj)
+        [deletedObjects addObject:obj];
+    var modifiedObjects = [self _saveObjectsUpdated:updatedObjects
+                                           inserted:insertedObjects
+                                            deleted:deletedObjects
+                                              error:saveError];
+    if ([saveError isNil])
+    {
+        // update the state of the object in the context
+        [_updatedObjectIDs removeObject:[aObject objectID]];
+        [_insertedObjectIDs removeObject:[aObject objectID]];
+        [_deletedObjects removeObject:[aObject objectID]];
+        result = YES;
+    }
+    else if (error && [error isNil])
+    {
+        // return the error to the caller
+        [error setObject:[saveError object]];
+    }
+    return result;
+}
+
+
+-(CPSet)_saveObjectsUpdated:(CPSet)updatedObjects
+                   inserted:(CPSet)insertedObjects
+                    deleted:(CPSet)deletedObjects
+                      error:(CPError)error
+{
+    var saveError = [CPReference new];
+    [self _validateUpdatedObject:updatedObjects
+                 insertedObjects:insertedObjects];
+    var resultSet = [[self store] saveObjectsUpdated:updatedObjects
+                                            inserted:insertedObjects
+                                             deleted:deletedObjects
+                              inManagedObjectContext:self
+                                               error:saveError];
+    if (resultSet && [resultSet count] > 0)
+    {
+        var objectsEnum = [resultSet objectEnumerator];
+        var objectFromResponse;
+        while((objectFromResponse = [objectsEnum nextObject]))
+        {
+            var registeredObject = [self objectRegisteredForID:[objectFromResponse objectID]];
+            if (registeredObject != nil)
+            {
+                [[registeredObject objectID] setGlobalID: [[objectFromResponse objectID] globalID]];
+                [[registeredObject objectID] setIsTemporary: [[objectFromResponse objectID] isTemporary]];
+            }
+        }
+    }
+    if (![saveError isNil] && error && [error isNil])
+    {
+        // return the error to the caller
+        [error setObject:[saveError object]];
+    }
+    return resultSet;
+}
+
+- (void) _validateUpdatedObject:({CPSet})updated
+                insertedObjects:({CPSet})inserted
+{
+    var unionSet = [[CPMutableSet alloc] init];
+    [unionSet unionSet:updated];
+    [unionSet unionSet:inserted];
+
+    var enumerator = [unionSet objectEnumerator];
+    var aObject;
+
+    while((aObject = [enumerator nextObject]))
+    {
+        if(![aObject validateForUpdate])
+        {
+            [updated removeObject:aObject];
+            [inserted removeObject:aObject];
+
+            var objectEnum = [unionSet objectEnumerator];
+            var object;
+            while((object = [objectEnum nextObject]))
+            {
+                if([object _containsObject:[aObject objectID]])
+                {
+                    [updated removeObject:object];
+                    [inserted removeObject:object];
+                }
+            }
+        }
+    }
 }
 
 /*
- *	Check if the context has changes
+ *    Check if the context has changes
  */
 - (BOOL) hasChanges
 {
-	CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
-	CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
-
-	return ([_updatedObjectIDs count] > 0) ||
-			([_insertedObjectIDs count] > 0) ||
-			([_deletedObjects count] > 0);
+    CPLog.debug(  "context:" + self
+                + " reg " + [_registeredObjects count]
+                + ", upd "  + [_updatedObjectIDs count]
+                + ", ins " + [_insertedObjectIDs count]
+                + ", del "  + [_deletedObjects count]);
+    return    ([_updatedObjectIDs count] > 0)
+           || ([_insertedObjectIDs count] > 0)
+           || ([_deletedObjects count] > 0);
 }
 
 /*
- *	request registered,inserted, updated and deleted objects by object id
+ *    request registered,inserted, updated and deleted objects by object id
  */
 - (CPManagedObject) objectRegisteredForID: (CPManagedObjectID) aObjectID
 {
-	var e;
-	var object = nil;
-	
-	if(aObjectID != nil)
-	{			
-		if([aObjectID validatedLocalID] || [aObjectID validatedGlobalID])
-		{		
-			e = [_registeredObjects objectEnumerator];
-			while ((object = [e nextObject]) != nil)
-			{		
-				if ([[object objectID] isEqualToLocalID: aObjectID] == YES)
-				{
-					return object;
-				}
-				else if ([[object objectID] isEqualToGlobalID: aObjectID] == YES)
-				{
-					return object;
-				}
-			}
-		}
-	}
-	return object;
+    if(aObjectID != nil)
+    {
+        var localID = nil;
+        if ([aObjectID validatedLocalID])
+        {
+            localID = [aObjectID localID];
+        }
+        var globalID = nil;
+        if ([aObjectID validatedGlobalID])
+        {
+            globalID = [aObjectID globalID];
+        }
+        if (localID || globalID)
+        {
+            var e = [_registeredObjects objectEnumerator],
+                id,
+                object;
+            while (object = [e nextObject])
+            {
+                id = [object objectID];
+                if (   (localID && [id isEqualToLocalID:aObjectID] == YES)
+                    || (globalID && [id isEqualToGlobalID:aObjectID] == YES)
+                   )
+                {
+                    return object;
+                }
+            }
+        }
+    }
+    return object;
 }
 
 
 - (CPManagedObject) _fetchObjectWithID:(CPManagedObjectID) aObjectID
-{	
-	var objectFromResponse = nil;
-	if(aObjectID != nil)
-	{
-		if([self _deletedObjectWithID:aObjectID] == nil && [aObjectID validatedGlobalID])
-		{
-			var setWithObjIDs = [[CPMutableSet alloc] init];
-			[setWithObjIDs addObject:aObjectID];
+{
+    var objectFromResponse = nil;
+    if(aObjectID != nil)
+    {
+        if([self _deletedObjectWithID:aObjectID] == nil && [aObjectID validatedGlobalID])
+        {
+            var setWithObjIDs = [[CPMutableSet alloc] init];
+            [setWithObjIDs addObject:aObjectID];
 
-			var newPropertiesDict = [[CPMutableDictionary alloc] init];
-			var localEntity = [[self model] entityWithName:[[aObjectID entity] name]];
-			var localProperties = [CPSet setWithArray: [localEntity propertyNames]]; 
-			[newPropertiesDict setObject:localProperties forKey:[[aObjectID entity] name]];
+            var newPropertiesDict = [[CPMutableDictionary alloc] init];
+            var localEntity = [[self model] entityWithName:[[aObjectID entity] name]];
+            var localProperties = [CPSet setWithArray: [localEntity propertyNames]];
+            [newPropertiesDict setObject:localProperties forKey:[[aObjectID entity] name]];
+            var error = nil;
+            var resultSet = [[self store] fetchObjectsWithID:setWithObjIDs
+                                             fetchProperties:newPropertiesDict
+                                                       error:error];
+            if(resultSet != nil && [resultSet count] > 0 && error == nil)
+            {
+                var objectEnum = [resultSet objectEnumerator];
+                var objectFromResponse;
 
-		
-			var error = nil;
-			var resultSet = [[self store] fetchObjectsWithID:setWithObjIDs fetchProperties:newPropertiesDict error:error];
-			if(resultSet != nil && [resultSet count] > 0 && error == nil)
-			{
-				var objectEnum = [resultSet objectEnumerator];
-				var objectFromResponse;
-			
-				while((objectFromResponse = [objectEnum nextObject]))
-				{
-					[[objectFromResponse objectID] setLocalID: [aObjectID localID]];
-					objectFromResponse = [self _registerObject:objectFromResponse];
-					aObjectID = [objectFromResponse objectID];
-//					CPLog.trace("_fetchObjectWithID: " + [[objectFromResponse objectID] localID]);
-					return objectFromResponse;
-				}
-			}
-		}
-	}
-	
-	return objectFromResponse;
+                while((objectFromResponse = [objectEnum nextObject]))
+                {
+                    [[objectFromResponse objectID] setLocalID: [aObjectID localID]];
+                    objectFromResponse = [self _registerObject:objectFromResponse];
+                    aObjectID = [objectFromResponse objectID];
+                    return objectFromResponse;
+                }
+            }
+        }
+    }
+
+    return objectFromResponse;
 }
 
 
 - (CPManagedObject) _insertedObjectWithID: (CPManagedObjectID) aObjectID
 {
-	var e;
-	var object;
+    var e;
+    var object;
 
-	e = [_insertedObjectIDs objectEnumerator];
-	while ((object = [e nextObject]) != nil)
-	{
-		if ([object isEqualToLocalID: aObjectID] == YES)
-		{
-			return [self objectRegisteredForID: aObjectID];
-		}
-	}
+    e = [_insertedObjectIDs objectEnumerator];
+    while ((object = [e nextObject]) != nil)
+    {
+        if ([object isEqualToLocalID: aObjectID] == YES)
+        {
+            return [self objectRegisteredForID: aObjectID];
+        }
+    }
 
-	return nil;
+    return nil;
 }
 
 - (CPManagedObject) _updatedObjectWithID: (CPManagedObjectID) aObjectID
 {
-	var e;
-	var object;
+    var e;
+    var object;
 
-	e = [_updatedObjectIDs objectEnumerator];
-	while ((object = [e nextObject]) != nil)
-	{
-		if ([object isEqualToLocalID: aObjectID] == YES)
-		{
-			return [self objectRegisteredForID: aObjectID];
-		}
-	}
+    e = [_updatedObjectIDs objectEnumerator];
+    while ((object = [e nextObject]) != nil)
+    {
+        if ([object isEqualToLocalID: aObjectID] == YES)
+        {
+            return [self objectRegisteredForID: aObjectID];
+        }
+    }
 
-	return nil;
+    return nil;
 }
 
 
 - (CPManagedObject) _deletedObjectWithID: (CPManagedObjectID) aObjectID
 {
-	var e;
-	var object;
+    var e;
+    var object;
 
-	e = [_deletedObjects objectEnumerator];
-	while ((object = [e nextObject]) != nil)
-	{
-		if ([[object objectID] isEqualToLocalID: aObjectID] == YES)
-		{
-			return object;
-		}
-		else if ([[object objectID] isEqualToGlobalID: aObjectID] == YES)
-		{
-			return object;
-		}
-	}
+    e = [_deletedObjects objectEnumerator];
+    while ((object = [e nextObject]) != nil)
+    {
+        if ([[object objectID] isEqualToLocalID: aObjectID] == YES)
+        {
+            return object;
+        }
+        else if ([[object objectID] isEqualToGlobalID: aObjectID] == YES)
+        {
+            return object;
+        }
+    }
 
-	return nil;
+    return nil;
 }
 
 /*
- *	Create new object from entity
+ *    Create new object from entity
  */
 - (CPManagedObject) insertNewObjectForEntityForName:(CPString) entity
 {
-	var result_object;	
-	var tmpentity = [[self model] entityWithName:entity];
-	if(tmpentity != nil)
-	{
-		result_object = [tmpentity createObject];
-
-		if(result_object != nil)
-		{
-			[self insertObject:result_object];
-		}
-	}
-		
-	return result_object
+    var result_object;
+    var tmpentity = [[self model] entityWithName:entity];
+    if(tmpentity != nil)
+    {
+        result_object = [tmpentity createObject];
+        if(result_object != nil)
+        {
+            [self insertObject:result_object];
+        }
+    }
+    return result_object
 }
 
 /*
- *	Insert and delete registered objects
+ *    Insert and delete registered objects
  */
 - (void) insertObject: ({CPManagedObject}) aObject
-{		
-	if([aObject objectID] == nil)
-	{
-		[aObject setObjectID:[[CPManagedObjectID alloc] initWithEntity:[aObject entity] globalID:nil isTemporary:YES]];
-	}
-	if ([self _deletedObjectWithID: [aObject objectID]] != nil)
+{
+    if([aObject objectID] == nil)
     {
-		[self _registerObject: aObject];
-		[_deletedObjects removeObject: aObject];
-		[_insertedObjectIDs addObject: [aObject objectID]];
+        [aObject setObjectID:[[CPManagedObjectID alloc] initWithEntity:[aObject entity] globalID:nil isTemporary:YES]];
+    }
+    var deletedObject = [self _deletedObjectWithID: [aObject objectID]];
+    if (deletedObject != nil)
+    {
+        [self _registerObject: aObject];
+        [_deletedObjects removeObject: aObject];
+        [_insertedObjectIDs addObject: [aObject objectID]];
 
     }
-	else if ([self _deletedObjectWithID: [aObject objectID]] == nil)
+    else
     {
-		[self _registerObject: aObject];
-		[_insertedObjectIDs addObject: [aObject objectID]];
+        [self _registerObject: aObject];
+        [_insertedObjectIDs addObject: [aObject objectID]];
     }
-	else
-    {
-      return;
-	}
+    [aObject _applyToContext: self];
 
-	[aObject _applyToContext: self];
-	
-	var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
-											   forKey: CPDInsertedObjectsKey];
-	[[CPNotificationCenter defaultCenter]
-		postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
-					  object: self
-					userInfo: userInfo];
+    var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
+                                               forKey: CPDInsertedObjectsKey];
+    [[CPNotificationCenter defaultCenter]
+        postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
+                      object: self
+                    userInfo: userInfo];
 }
 
 
 - (void) deleteObject: ({CPManagedObject}) aObject
 {
-	[self _deleteObject:aObject saveAfterDeletion:YES];
+    [self _deleteObject:aObject saveAfterDeletion:YES];
 }
 
 
 - (void) _deleteObject: ({CPManagedObject}) aObject saveAfterDeletion:(BOOL) saveAfterDeletion
 {
-	if ([self objectRegisteredForID: [aObject objectID]] != nil)
-	{		
-		if([aObject _solveRelationshipsWithDeleteRules] == YES)
-		{
-			var needToSave = NO;
-			//if delete rule is Deny the result is false
-			[aObject setDeleted: YES];
-			
-			if([[aObject objectID] validatedGlobalID])
-			{
-				[_deletedObjects addObject: aObject];
-				needToSave = YES;
-			}
-			
-			[_insertedObjectIDs removeObject: [aObject objectID]];
-			[self _unregisterObject: aObject];
-			
-			var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
-													   forKey: CPDDeletedObjectsKey];
-			
-			[[CPNotificationCenter defaultCenter]
-						postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
-									  object: self
-									userInfo: userInfo];
-									
-			if(saveAfterDeletion && [self autoSaveChanges] && needToSave)
-				[self saveChanges];
-		}
-	}
-	else
-	{
-		[aObject setDeleted: YES];
-		[_deletedObjects addObject: aObject];
-	}	
+    if ([self objectRegisteredForID: [aObject objectID]] != nil)
+    {
+        if ([aObject _solveRelationshipsWithDeleteRules] == YES)
+        {
+            var needToSave = NO;
+            //if delete rule is Deny the result is false
+            [aObject setDeleted: YES];
+
+            if([[aObject objectID] validatedGlobalID])
+            {
+                [_deletedObjects addObject: aObject];
+                needToSave = YES;
+            }
+
+            [_insertedObjectIDs removeObject: [aObject objectID]];
+            [self _unregisterObject: aObject];
+
+            var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
+                                                       forKey: CPDDeletedObjectsKey];
+
+            [[CPNotificationCenter defaultCenter]
+                        postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
+                                      object: self
+                                    userInfo: userInfo];
+
+            if(saveAfterDeletion && [self autoSaveChanges] && needToSave)
+                [self saveChanges:nil];
+        }
+    }
+    else
+    {
+        [aObject setDeleted: YES];
+        [_deletedObjects addObject: aObject];
+    }
 }
 
 - (void) deleteObjectWithID: (CPManagedObjectID) aObjectId
 {
-	var aObject = [self objectRegisteredForID: objectID];
-	if (aObject != nil)
-	{
-		[self deleteObject:aObject];
-	}
+    var aObject = [self objectRegisteredForID: objectID];
+    if (aObject != nil)
+    {
+        [self deleteObject:aObject];
+    }
 }
 
 /*
- *	Object changes notifications
+ *    Object changes notifications
  */
 - (void)_objectDidChange:(CPManagedObject)aObject
-{	
-	if ([self objectRegisteredForID: [aObject objectID]] != nil)
-	{
-		if ([self _insertedObjectWithID: [aObject objectID]] == nil)
-		{
-			[[self objectRegisteredForID: [aObject objectID]] setUpdated:YES];
-			[_updatedObjectIDs addObject: [aObject objectID]];			
-		}
-		
-		var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
-												   forKey: CPDUpdatedObjectsKey];
-		[[CPNotificationCenter defaultCenter]
-			postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
-						  object: self
-						userInfo: userInfo];
-						
-		CPLog.debug(@"updatedObjectIDs " + [_updatedObjectIDs count] + ", insertedObjects " + [_insertedObjectIDs count]);
-		CPLog.debug(@"registeredObjects " + [_registeredObjects count] + ", deletedObjects " + [_deletedObjects count]);
-	}
+{
+    if ([self objectRegisteredForID: [aObject objectID]] != nil)
+    {
+        if ([self _insertedObjectWithID: [aObject objectID]] == nil)
+        {
+            [[self objectRegisteredForID: [aObject objectID]] setUpdated:YES];
+            [_updatedObjectIDs addObject: [aObject objectID]];
+        }
+
+        var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: aObject]
+                                                   forKey: CPDUpdatedObjectsKey];
+        [[CPNotificationCenter defaultCenter]
+            postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
+                          object: self
+                        userInfo: userInfo];
+        CPLog.debug(  "context:" + self
+                    + " Object did change: reg " + [_registeredObjects count]
+                    + ", upd "  + [_updatedObjectIDs count]
+                    + ", ins " + [_insertedObjectIDs count]
+                    + ", del "  + [_deletedObjects count]);
+    }
 }
 
 
 /*
- *	Register and Unregister object
+ *    Register and Unregister object
+
+    If aObject is already in the context only a CPManagedObjectContextObjectsDidChangeNotification
+    is sent.
  */
 - (CPManagedObject) _registerObject: (CPManagedObject) aObject
 {
-//	CPLog.trace("localID: " + [[aObject objectID] localID]);
-	var regObject = [self objectRegisteredForID:[aObject objectID]];
-	if(regObject != nil)
-	{
-		//update regobject with object
-		[regObject _updateWithObject: aObject];
-		[regObject _applyToContext:self];
-		aObject = regObject;
-		var userInfo = [CPDictionary dictionaryWithObject: [CPSet setWithObject: regObject]
-											   forKey: CPDUpdatedObjectsKey];
-		[[CPNotificationCenter defaultCenter]
-						postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
-									  object: self
-									userInfo: userInfo];
-	}
-	else
-	{
-		if(![[aObject objectID] validatedLocalID])
-		{
-			[aObject setEntity:[[aObject objectID] entity]];
-			[[aObject objectID] setLocalID:[CPManagedObjectID createLocalID]];
-			[aObject _applyToContext:self];
-			
-			[_registeredObjects addObject: aObject];	
-		}
-		else
-		{
-			[_registeredObjects addObject: aObject];
-		}
-		[aObject _applyToContext:self];
-//		CPLog.trace("aobject:localID: " + [[aObject objectID] localID]);
-		return aObject;
-	}	
-	
-	[regObject _applyToContext:self];
-//	CPLog.trace("reg:localID: " + [[regObject objectID] localID]);
-	return regObject;
+    var regObject = [self objectRegisteredForID:[aObject objectID]];
+    if(regObject != nil)
+    {
+        if (regObject !== aObject)
+        {
+            //update regobject with object
+            [regObject _updateWithObject: aObject];
+            [regObject _applyToContext:self];
+            aObject = regObject;
+        }
+        var userInfo = [CPDictionary dictionaryWithObject:[CPSet setWithObject:aObject]
+                                                   forKey:CPDUpdatedObjectsKey];
+        [[CPNotificationCenter defaultCenter]
+                        postNotificationName: CPManagedObjectContextObjectsDidChangeNotification
+                                      object: self
+                                    userInfo: userInfo];
+    }
+    else
+    {
+        if (![[aObject objectID] validatedLocalID])
+        {
+            [aObject setEntity:[[aObject objectID] entity]];
+            [[aObject objectID] setLocalID:[CPManagedObjectID createLocalID]];
+        }
+        [_registeredObjects addObject: aObject];
+        [aObject _applyToContext:self];
+    }
+    return aObject;
 }
 
 
 - (void) _unregisterObject: (CPManagedObject) object
 {
-	if ([_registeredObjects containsObject: object] == YES)
-	{
-		[_registeredObjects removeObject: object];
-	}
+    if ([_registeredObjects containsObject: object] == YES)
+    {
+        [_registeredObjects removeObject: object];
+    }
 }
 
 
-
 /*
- *	All inserted object ids
+ *    All inserted object ids
  */
 - (CPSet) insertedObjectIDs
 {
-	return _insertedObjectIDs;
+    return _insertedObjectIDs;
 }
 
+
 /*
- *	All updated object ids
+ *    All updated object ids
  */
 - (CPSet) updatedObjectIDs
 {
-	return _updatedObjectIDs;
+    return _updatedObjectIDs;
 }
 
 
-
 /*
- *	All inserted objects
+ *    All inserted objects
  */
 - (CPSet) insertedObjects
 {
-	var result = [[CPMutableSet alloc] init];
-	
-	var objectsEnum = [_insertedObjectIDs objectEnumerator];
-	var objID;
-	while((objID = [objectsEnum nextObject]))
-	{
-		[result addObject:[self objectRegisteredForID:objID]];
-	}
-	
-	return result;
+    var result = [[CPMutableSet alloc] init];
+
+    var objectsEnum = [_insertedObjectIDs objectEnumerator];
+    var objID;
+    while((objID = [objectsEnum nextObject]))
+    {
+        [result addObject:[self objectRegisteredForID:objID]];
+    }
+
+    return result;
 }
 
 
 /*
- *	All updated objects
+ *    All updated objects
  */
 - (CPSet) updatedObjects
 {
-	var result = [[CPMutableSet alloc] init];
+    var result = [[CPMutableSet alloc] init];
 
-	var objectsEnum = [_updatedObjectIDs objectEnumerator];
-	var objID;
-	while((objID = [objectsEnum nextObject]))
-	{
-		[result addObject:[self objectRegisteredForID:objID]];
-	}
-	
-	return result;
+    var objectsEnum = [_updatedObjectIDs objectEnumerator];
+    var objID;
+    while((objID = [objectsEnum nextObject]))
+    {
+        [result addObject:[self objectRegisteredForID:objID]];
+    }
+    return result;
 }
 
 
 
 /*
- *	All deleted objects
+ *    All deleted objects
  */
 - (CPSet) deletedObjects
 {
-	return _deletedObjects;
+    return _deletedObjects;
 }
 
 
 /*
- *	All registrated object ids
+ *    All registrated object ids
  */
 - (CPSet) registeredObjectIDs
 {
-	var result = [[CPMutableSet alloc] init];
+    var result = [[CPMutableSet alloc] init];
 
-	var objectsEnum = [_registeredObjects objectEnumerator];
-	var obj;
-	while((obj = [objectsEnum objectEnumerator]))
-	{
-		[result addObject:[obj objectID]];
-	}
-	
-	return result;
+    var objectsEnum = [_registeredObjects objectEnumerator];
+    var obj;
+    while((obj = [objectsEnum objectEnumerator]))
+    {
+        [result addObject:[obj objectID]];
+    }
+
+    return result;
 }
 
 /*

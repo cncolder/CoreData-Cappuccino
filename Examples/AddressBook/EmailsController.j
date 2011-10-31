@@ -97,7 +97,7 @@
 	}
 	else
 	{
-		[self setSelectedAddress:nil];
+		[self setSelectedEmail:nil];
 	}
 }
 

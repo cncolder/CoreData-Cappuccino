@@ -1,0 +1,99 @@
+{
+    "properties":{
+        "string1":{
+            "required":true,
+            "type":"string",
+            "default":"default for string1"
+        },
+        "created":{
+          "type":"string",
+          "description":"The date the object was created.",
+          "format":"sl:rfc3339"
+        },
+        "enum1":{
+            "required":true,
+            "enum":[
+                "today",
+                "tomorrow"
+            ],
+            "default":"tomorrow"
+        },
+        "object1":{
+            "type":"object",
+            "required":true,
+            "properties":{
+                "attr1":{
+                    "type":"string",
+                    "default":"default for attr1"
+                    },
+                "transform":{
+                    "type":"string",
+                    "default":"untransformed",
+                    "format":"TestTransformer"
+                    },
+                "missing":{
+                    "type":"string"
+                    },
+                "subobject":{
+                    "type":"object",
+                    "properties":{
+                        "p1":{
+                            "type":"string",
+                            "default":"p1 in subobject of object1"
+                            }
+                        }
+                    }
+            }
+        },
+        "array1":{
+            "type":"array",
+            "required":true,
+            "items":{
+                "type":"object",
+                "properties":{
+                    "transform":{
+                        "type":"string",
+                        "default":"untransformed",
+                        "format":"TestTransformer"
+                        },
+                    "subobject":{
+                        "type":"object",
+                        "properties":{
+                            "p1":{
+                                "type":"string",
+                                "default":"p1 in subobject of array1"
+                                }
+                            }
+                        },
+                    "innerarray":{
+                        "type":"array",
+                        "items":{
+                            "item":{
+                                "type":"string",
+                                }
+                            }
+                        }
+                    }
+            }
+        },
+        "array2":{
+            "type":"array",
+            "items":{
+                "type":"string"
+            }
+        },
+        "missing":{
+            "type":"string"
+        },
+        "missingArray":{
+            "type":"array",
+            "items":{
+                "type":"string"
+            }
+        }
+    },
+    "type":"object",
+    "description":"A test schema for the managed object tests",
+    "title":"Type1"
+}
+
